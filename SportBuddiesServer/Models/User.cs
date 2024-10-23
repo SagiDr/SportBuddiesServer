@@ -40,7 +40,7 @@ public partial class User
     public virtual GameType? FavoriteSportNavigation { get; set; }
 
     [InverseProperty("Creator")]
-    public virtual ICollection<GameDetail> GameDetails { get; set; } = new List<GameDetail>();
+    public virtual ICollection<GameDetails> GameDetails { get; set; } = new List<GameDetails>();
 
     [InverseProperty("User")]
     public virtual ICollection<GameUser> GameUsers { get; set; } = new List<GameUser>();

@@ -26,5 +26,5 @@ public partial class Photo
 
     [ForeignKey("GameId")]
     [InverseProperty("Photos")]
-    public virtual GameDetail? Game { get; set; }
+    public virtual GameDetails? Game { get; set; }
 }

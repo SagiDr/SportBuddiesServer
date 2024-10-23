@@ -110,8 +110,6 @@ GO
 ALTER ROLE db_owner ADD MEMBER [SportBuddiesAdminUser];
 GO
 
-USE SportBuddiesDB; -- Make sure you are using the correct database
-GO
 
 SELECT * FROM [User];
 SELECT * FROM [GameType];

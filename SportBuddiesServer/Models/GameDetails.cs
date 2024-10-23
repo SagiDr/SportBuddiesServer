@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SportBuddiesServer.Models;
 
-public partial class GameDetail
+public partial class GameDetails
 {
     [Key]
     [Column("GameID")]
