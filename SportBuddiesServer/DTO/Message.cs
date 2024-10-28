@@ -7,7 +7,6 @@ namespace SportBuddiesServer.DTO
 {
     public class Message
     {
-        [Required]
         public int MessageId { get; set; }
 
         public int? SenderId { get; set; }
@@ -17,6 +16,31 @@ namespace SportBuddiesServer.DTO
         public string? MessageContent { get; set; }
 
         public DateTime? Timestamp { get; set; }
+
+
+        public Message(Models.Message modelUser)
+        {
+           MessageId = modelUser.MessageId;
+           SenderId = modelUser.SenderId;
+           ReceiverId = modelUser.ReceiverId;
+           MessageContent = modelUser.MessageContent;
+           Timestamp = modelUser.Timestamp;
+        }
+
+        public Models.Message GetModels()
+        {
+            Models.Message modelsMessage = new Models.Message()
+            {
+                MessageId = this.MessageId,
+                SenderId = this.SenderId,
+                ReceiverId = this.ReceiverId,
+                MessageContent = this.MessageContent,
+                Timestamp = this.Timestamp
+
+            };
+
+            return modelsMessage;
+        }
 
     }
 }
