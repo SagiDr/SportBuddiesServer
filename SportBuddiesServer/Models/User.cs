@@ -23,6 +23,10 @@ public partial class User
 
     [StringLength(255)]
     [Unicode(false)]
+    public string? Password { get; set; }
+
+    [StringLength(255)]
+    [Unicode(false)]
     public string? Gender { get; set; }
 
     [StringLength(3)]
@@ -40,7 +44,7 @@ public partial class User
     public virtual GameType? FavoriteSportNavigation { get; set; }
 
     [InverseProperty("Creator")]
-    public virtual ICollection<GameDetails> GameDetails { get; set; } = new List<GameDetails>();
+    public virtual ICollection<GameDetail> GameDetails { get; set; } = new List<GameDetail>();
 
     [InverseProperty("User")]
     public virtual ICollection<GameUser> GameUsers { get; set; } = new List<GameUser>();

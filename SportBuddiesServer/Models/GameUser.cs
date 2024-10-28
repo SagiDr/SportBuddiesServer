@@ -20,7 +20,7 @@ public partial class GameUser
 
     [ForeignKey("GameId")]
     [InverseProperty("GameUsers")]
-    public virtual GameDetails Game { get; set; } = null!;
+    public virtual GameDetail Game { get; set; } = null!;
 
     [ForeignKey("RoleId")]
     [InverseProperty("GameUsers")]

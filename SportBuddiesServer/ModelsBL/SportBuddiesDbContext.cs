@@ -6,6 +6,6 @@ namespace SportBuddiesServer.Models;
 
 public partial class SportBuddiesDbContext : DbContext
 {
-
+   
 }
 

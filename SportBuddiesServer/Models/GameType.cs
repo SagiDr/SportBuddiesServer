@@ -22,7 +22,7 @@ public partial class GameType
     public string? CourtExtention { get; set; }
 
     [InverseProperty("GameTypeNavigation")]
-    public virtual ICollection<GameDetails> GameDetails { get; set; } = new List<GameDetails>();
+    public virtual ICollection<GameDetail> GameDetails { get; set; } = new List<GameDetail>();
 
     [InverseProperty("GameType")]
     public virtual ICollection<GameRole> GameRoles { get; set; } = new List<GameRole>();

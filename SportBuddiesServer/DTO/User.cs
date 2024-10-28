@@ -18,6 +18,9 @@ namespace SportBuddiesServer.DTO
         public string? Email { get; set; }
 
         [StringLength(255)]
+        public string? Password { get; set; }
+
+        [StringLength(255)]
         public string? Gender { get; set; }
 
         [StringLength(3)]
