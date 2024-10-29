@@ -42,8 +42,14 @@ namespace SportBuddiesServer.DTO
             Date = modelUser.Date;
             Time = modelUser.Time;
             Location = modelUser.Location;
-            LocationWidth = modelUser.LocationWidth;
+            GameType = modelUser.GameType;
+            State = modelUser.State;
+            Score = modelUser.Score;
+            Notes = modelUser.Notes;
+            Competitive = modelUser.Competitive;
+            Link = modelUser.Link;
             LocationLength = modelUser.LocationLength;
+            LocationWidth = modelUser.LocationWidth;
             CreatorId = modelUser.CreatorId;
         }
 
@@ -56,16 +62,21 @@ namespace SportBuddiesServer.DTO
                 Date = this.Date,
                 Time = this.Time,
                 Location = this.Location,
+                GameType= this.GameType,
+                State = this.State,
+                Score = this.Score,
+                Notes = this.Notes,
+                Competitive = this.Competitive,
+                Link= this.Link,
                 LocationWidth = this.LocationWidth,
                 LocationLength = this.LocationLength,
                 CreatorId = this.CreatorId,
             };
-
             return modelsGameDetails;
         }
 
 
-        // Optionally include collections if needed for specific operations
+        //// Optionally include collections if needed for specific operations
         //    public ICollection<int>? GameUserIds { get; set; } = new List<int>();
         //    public ICollection<int>? PhotoIds { get; set; } = new List<int>();
         //}

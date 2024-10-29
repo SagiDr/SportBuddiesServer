@@ -16,7 +16,6 @@ namespace SportBuddiesServer.DTO
 
         public Photo() { }
 
-
         public Photo(Models.Photo modelUser)
         {
             PhotoId = modelUser.PhotoId;
@@ -33,11 +32,8 @@ namespace SportBuddiesServer.DTO
                 ImageUrl= this.ImageUrl,
                 Description= this.Description,
                 GameId= this.GameId
-
             };
-
             return modelsPhoto;
         }
-
     }
 }

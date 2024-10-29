@@ -52,6 +52,42 @@ namespace SportBuddiesServer.Controllers
 
         }
 
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] DTO.User userDto)
+        {
+            try
+            {
+                HttpContext.Session.Clear(); //Logout any previous login attempt
+
+                //Create model user class
+                Models.User modelsUser = userDto.GetModels();
+
+                context.Users.Add(modelsUser);
+                context.SaveChanges();
+
+                //User was added!
+                DTO.User dtoUser = new DTO.User(modelsUser);
+                dtoUser.ProfileImageExtention = GetProfileImageVirtualPath(dtoUser.UserId);
+                return Ok(dtoUser);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
         //this function check which profile image exist and return the virtual path of it.
         //if it does not exist it returns the default profile image virtual path
         private string GetProfileImageVirtualPath(int userId)
@@ -79,14 +115,11 @@ namespace SportBuddiesServer.Controllers
         }
 
 
-
         [HttpGet]
         [Route("TestServer")]
         public ActionResult<string> TestServer()
         {
             return Ok("Server Responded Successfully");
         }
-
-
     }
 }

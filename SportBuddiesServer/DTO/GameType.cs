@@ -39,12 +39,9 @@ namespace SportBuddiesServer.DTO
 
 
 
-
-
         //// Optionally, include collections if needed for specific operations
         //public ICollection<int>? GameDetailIds { get; set; } = new List<int>();
         //public ICollection<int>? GameRoleIds { get; set; } = new List<int>();
         //public ICollection<int>? UserIds { get; set; } = new List<int>();
-
     }
 }

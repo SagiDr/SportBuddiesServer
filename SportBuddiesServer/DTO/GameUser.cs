@@ -8,13 +8,11 @@ namespace SportBuddiesServer.DTO
 {
     public class GameUser
     {
-
         public int GameId { get; set; }
 
         public int RoleId { get; set; }
 
         public int UserId { get; set; }
-
 
         public GameUser(Models.GameUser modelUser)
         {

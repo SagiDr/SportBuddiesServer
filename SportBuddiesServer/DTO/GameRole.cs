@@ -38,6 +38,8 @@ namespace SportBuddiesServer.DTO
 
             return modelsGameRole;
         }
+
+
         //// Optionally, include a collection of GameUser IDs if needed
         //public ICollection<int>? GameUserIds { get; set; } = new List<int>();
     }
