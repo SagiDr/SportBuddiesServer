@@ -14,6 +14,8 @@ namespace SportBuddiesServer.DTO
 
         public string? CourtExtention { get; set; }
 
+        public GameType() { }
+
         public GameType(Models.GameType modelUser)
         {
             IdType = modelUser.IdType;

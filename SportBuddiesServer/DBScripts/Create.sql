@@ -116,5 +116,7 @@ SELECT * FROM [User];
 SELECT * FROM [GameType];
 SELECT * FROM [GameUsers];
 
+INSERT INTO GameType ([Name], CourtExtention, IconExtention) VALUES ('Basketball', 'jpg','jpg')
+
 
 -- scaffold-DbContext "Server = (localdb)\MSSQLLocalDB;Initial Catalog=SportBuddiesDB;User ID=SportBuddiesAdminLogin;Password=thePassword;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir Models -Context SportBuddiesDbContext -DataAnnotations –force

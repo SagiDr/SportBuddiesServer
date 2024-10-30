@@ -35,6 +35,8 @@ namespace SportBuddiesServer.DTO
 
         public int? CreatorId { get; set; }
 
+        public GameDetails() { }
+
         public GameDetails(Models.GameDetails modelUser)
         {
             GameId = modelUser.GameId;

@@ -17,6 +17,8 @@ namespace SportBuddiesServer.DTO
 
         public DateTime? Timestamp { get; set; }
 
+        public Message() { }
+
         public Message(Models.Message modelUser)
         {
            MessageId = modelUser.MessageId;

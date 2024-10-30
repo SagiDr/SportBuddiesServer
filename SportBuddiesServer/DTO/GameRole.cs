@@ -16,6 +16,8 @@ namespace SportBuddiesServer.DTO
 
         public int? PositionY { get; set; }
 
+        public GameRole() { }
+
         public GameRole(Models.GameRole modelUser)
         {
             RoleId = modelUser.RoleId;
