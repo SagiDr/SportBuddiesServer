@@ -75,19 +75,6 @@ namespace SportBuddiesServer.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
         //this function check which profile image exist and return the virtual path of it.
         //if it does not exist it returns the default profile image virtual path
         private string GetProfileImageVirtualPath(int userId)
