@@ -106,6 +106,7 @@ namespace SportBuddiesServer.Controllers
                 if (file.FileName.LastIndexOf(".") > 0)
                 {
                     extention = file.FileName.Substring(file.FileName.LastIndexOf(".")).ToLower();
+                    user.ProfileImageExtention = extention;
                 }
                 if (!allowedExtentions.Where(e => e == extention).Any())
                 {
@@ -133,7 +134,9 @@ namespace SportBuddiesServer.Controllers
                 }
 
             }
-
+            //Upadte image extention in DB
+            context.Entry(user).State = EntityState.Modified;
+            context.SaveChanges();
             DTO.User dtoUser = new DTO.User(user);
             dtoUser.ProfileImageExtention = GetProfileImageVirtualPath(dtoUser.UserId);
             return Ok(dtoUser);

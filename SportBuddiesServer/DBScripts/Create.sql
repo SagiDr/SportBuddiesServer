@@ -24,7 +24,7 @@ CREATE TABLE [User] (
     Gender VARCHAR(255),
     IsAdmin VARCHAR(3) CHECK (IsAdmin IN ('YES', 'NO')),
     ProfileImageExtention VARCHAR(255),
-    FavoriteSport INT,
+    FavoriteSport INT,   -- 1 - Basketball,2 - Football, 3 - vollyball
     FOREIGN KEY (FavoriteSport) REFERENCES GameType(IdType)
 );
 
