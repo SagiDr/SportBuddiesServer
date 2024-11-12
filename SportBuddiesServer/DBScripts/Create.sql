@@ -87,7 +87,7 @@ CREATE TABLE [GameUsers] (
 
 -- Inserting a user into the User table
 INSERT INTO [User] (Name, Email,Password, Gender, IsAdmin, ProfileImageExtention, FavoriteSport)
-VALUES ('admin', 'kuku@kuku.com',123, 'Male', 'YES',NULL, NULL);
+VALUES ('test', 'test@test.com',12, 'Male', 'YES',NULL, NULL);
 GO
 
 -- Check if the login already exists before creating it
@@ -117,6 +117,6 @@ SELECT * FROM [GameType];
 SELECT * FROM [GameUsers];
 
 --INSERT INTO GameType ([Name], CourtExtention, IconExtention) VALUES ('Basketball', 'jpg','jpg')
-
+DELETE FROM [User] WHERE UserID=2;
 
 -- scaffold-DbContext "Server = (localdb)\MSSQLLocalDB;Initial Catalog=SportBuddiesDB;User ID=SportBuddiesAdminLogin;Password=thePassword;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir Models -Context SportBuddiesDbContext -DataAnnotations –force
