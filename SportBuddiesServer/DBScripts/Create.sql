@@ -111,7 +111,7 @@ GO
 ALTER ROLE db_owner ADD MEMBER [SportBuddiesAdminUser];
 GO
 
-
+SELECT * FROM [GameDetails];
 SELECT * FROM [User];
 SELECT * FROM [GameType];
 SELECT * FROM [GameUsers];

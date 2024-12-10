@@ -137,6 +137,8 @@ namespace SportBuddiesServer.Controllers
             }
 
 
+
+
             //Read all files sent
             long imagesSize = 0;
 
@@ -182,6 +184,29 @@ namespace SportBuddiesServer.Controllers
             DTO.User dtoUser = new DTO.User(user);
             dtoUser.ProfileImageExtention = GetProfileImageVirtualPath(dtoUser.UserId);
             return Ok(dtoUser);
+        }
+
+        [HttpPost("AddGame")]
+        public IActionResult AddGame([FromBody] DTO.GameDetails gameDetailsDTO)
+        {
+            try
+            {
+                HttpContext.Session.Clear(); //Logout any previous login attempt
+
+                //Create model user class
+                Models.GameDetails modelsgameDetails = gameDetailsDTO.GetModels();
+
+                context.GameDetails.Add(modelsgameDetails);
+                context.SaveChanges();
+
+                //User was added!
+                DTO.GameDetails dtogameDetails = new DTO.GameDetails(modelsgameDetails);
+                return Ok(dtogameDetails);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         //Helper functions
