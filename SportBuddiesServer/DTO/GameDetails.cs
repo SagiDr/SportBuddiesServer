@@ -37,7 +37,7 @@ namespace SportBuddiesServer.DTO
 
         public GameDetails() { }
 
-        public GameDetails(Models.GameDetails modelUser)
+        public GameDetails(Models.GameDetail modelUser)
         {
             GameId = modelUser.GameId;
             GameName = modelUser.GameName;
@@ -55,9 +55,9 @@ namespace SportBuddiesServer.DTO
             CreatorId = modelUser.CreatorId;
         }
 
-        public Models.GameDetails GetModels()
+        public Models.GameDetail GetModels()
         {
-            Models.GameDetails modelsGameDetails = new Models.GameDetails()
+            Models.GameDetail modelsGameDetails = new Models.GameDetail()
             {
                 GameId = this.GameId,
                 GameName = this.GameName,

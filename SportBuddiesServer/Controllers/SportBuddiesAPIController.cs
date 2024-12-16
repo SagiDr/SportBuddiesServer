@@ -194,7 +194,7 @@ namespace SportBuddiesServer.Controllers
                 HttpContext.Session.Clear(); //Logout any previous login attempt
 
                 //Create model user class
-                Models.GameDetails modelsgameDetails = gameDetailsDTO.GetModels();
+                Models.GameDetail modelsgameDetails = gameDetailsDTO.GetModels();
 
                 context.GameDetails.Add(modelsgameDetails);
                 context.SaveChanges();
