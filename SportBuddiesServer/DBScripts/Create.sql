@@ -9,6 +9,8 @@ Create Database SportBuddiesDB
 Go
 Use SportBuddiesDB
 Go
+
+-- Create GameType table
 CREATE TABLE [GameType] (
     IdType INT PRIMARY KEY IDENTITY(1,1),
     [Name] NVARCHAR(255),
@@ -16,6 +18,7 @@ CREATE TABLE [GameType] (
     CourtExtention NVARCHAR(255)
 );
 
+-- Create User table
 CREATE TABLE [User] (
     UserID INT PRIMARY KEY IDENTITY(1,1),
     [Name] VARCHAR(255),
@@ -24,17 +27,18 @@ CREATE TABLE [User] (
     Gender VARCHAR(255),
     IsAdmin VARCHAR(3) CHECK (IsAdmin IN ('YES', 'NO')),
     ProfileImageExtention VARCHAR(255),
-    FavoriteSport varchar,   -- 1 - Basketball,2 - Football, 3 - vollyball
-    FOREIGN KEY (FavoriteSport) REFERENCES GameType(IdType)
+    FavoriteSport INT,   -- Changed to INT to match GameType(IdType)
+    FOREIGN KEY (FavoriteSport) REFERENCES GameType(IdType)  -- Foreign key to GameType(IdType)
 );
 
-CREATE TABLE [GameDetails] (  -- Renamed from Game to GameDetails
+-- Create GameDetails table
+CREATE TABLE [GameDetails] (
     GameID INT PRIMARY KEY IDENTITY(1,1),
     GameName VARCHAR(255),
     [Date] DATE,
     [Time] TIME,
     [Location] VARCHAR(255),
-    GameType VARCHAR CHECK (State IN ('Basketball', 'Football','volleyball')),
+    GameType INT,  -- Changed from VARCHAR(255) to INT to match GameType(IdType)
     [State] VARCHAR(10) CHECK (State IN ('Private', 'Public')),
     Score VARCHAR(50),
     Notes TEXT,
@@ -44,9 +48,10 @@ CREATE TABLE [GameDetails] (  -- Renamed from Game to GameDetails
     LocationWidth DECIMAL,
     CreatorId INT,
     FOREIGN KEY (CreatorId) REFERENCES [User](UserID),
-    FOREIGN KEY (GameType) REFERENCES GameType(IdType)
+    FOREIGN KEY (GameType) REFERENCES GameType(IdType)  -- Foreign key to GameType(IdType)
 );
 
+-- Create Photo table
 CREATE TABLE [Photo] (
     PhotoID INT PRIMARY KEY IDENTITY(1,1),
     ImageURL VARCHAR(255),
@@ -55,6 +60,7 @@ CREATE TABLE [Photo] (
     FOREIGN KEY (GameID) REFERENCES [GameDetails](GameID)
 );
 
+-- Create Messages table
 CREATE TABLE [Messages] (
     MessageID INT PRIMARY KEY IDENTITY(1,1),
     SenderID INT,
@@ -65,6 +71,7 @@ CREATE TABLE [Messages] (
     FOREIGN KEY (ReceiverID) REFERENCES [User](UserID)
 );
 
+-- Create GameRoles table
 CREATE TABLE [GameRoles] (
     RoleID INT PRIMARY KEY IDENTITY(1,1),
     GameTypeID INT,
@@ -74,6 +81,7 @@ CREATE TABLE [GameRoles] (
     FOREIGN KEY (GameTypeID) REFERENCES GameType(IdType)
 );
 
+-- Create GameUsers table
 CREATE TABLE [GameUsers] (
     GameId INT,
     RoleId INT,
@@ -84,10 +92,9 @@ CREATE TABLE [GameUsers] (
     FOREIGN KEY (UserId) REFERENCES [User](UserID)
 );
 
-
 -- Inserting a user into the User table
-INSERT INTO [User] (Name, Email,Password, Gender, IsAdmin, ProfileImageExtention, FavoriteSport)
-VALUES ('test', 'test@test.com',12, 'Male', 'YES',NULL, NULL);
+INSERT INTO [User] (Name, Email, Password, Gender, IsAdmin, ProfileImageExtention, FavoriteSport)
+VALUES ('test', 'test@test.com', '12', 'Male', 'YES', NULL, NULL);
 GO
 
 -- Check if the login already exists before creating it
@@ -115,8 +122,6 @@ SELECT * FROM [GameDetails];
 SELECT * FROM [User];
 SELECT * FROM [GameType];
 SELECT * FROM [GameUsers];
-
-
 
 
 -- scaffold-DbContext "Server = (localdb)\MSSQLLocalDB;Initial Catalog=SportBuddiesDB;User ID=SportBuddiesAdminLogin;Password=thePassword;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir Models -Context SportBuddiesDbContext -DataAnnotations –force
