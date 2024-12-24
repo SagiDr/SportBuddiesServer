@@ -37,7 +37,7 @@ public partial class SportBuddiesDbContext : DbContext
     {
         modelBuilder.Entity<GameDetail>(entity =>
         {
-            entity.HasKey(e => e.GameId).HasName("PK__GameDeta__2AB897DD5944BFFC");
+            entity.HasKey(e => e.GameId).HasName("PK__GameDeta__2AB897DD98FE9E60");
 
             entity.HasOne(d => d.Creator).WithMany(p => p.GameDetails).HasConstraintName("FK__GameDetai__Creat__2B3F6F97");
 
@@ -46,19 +46,19 @@ public partial class SportBuddiesDbContext : DbContext
 
         modelBuilder.Entity<GameRole>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__GameRole__8AFACE3A09E0D43B");
+            entity.HasKey(e => e.RoleId).HasName("PK__GameRole__8AFACE3ACB6444B4");
 
             entity.HasOne(d => d.GameType).WithMany(p => p.GameRoles).HasConstraintName("FK__GameRoles__GameT__35BCFE0A");
         });
 
         modelBuilder.Entity<GameType>(entity =>
         {
-            entity.HasKey(e => e.IdType).HasName("PK__GameType__9A39EABCFD27E3B5");
+            entity.HasKey(e => e.IdType).HasName("PK__GameType__9A39EABCB8086F57");
         });
 
         modelBuilder.Entity<GameUser>(entity =>
         {
-            entity.HasKey(e => new { e.GameId, e.RoleId, e.UserId }).HasName("PK__GameUser__DF00B3D063CB48D1");
+            entity.HasKey(e => new { e.GameId, e.RoleId, e.UserId }).HasName("PK__GameUser__DF00B3D038BE90C9");
 
             entity.HasOne(d => d.Game).WithMany(p => p.GameUsers)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -75,7 +75,7 @@ public partial class SportBuddiesDbContext : DbContext
 
         modelBuilder.Entity<Message>(entity =>
         {
-            entity.HasKey(e => e.MessageId).HasName("PK__Messages__C87C037CF402BE62");
+            entity.HasKey(e => e.MessageId).HasName("PK__Messages__C87C037C5433A063");
 
             entity.HasOne(d => d.Receiver).WithMany(p => p.MessageReceivers).HasConstraintName("FK__Messages__Receiv__32E0915F");
 
@@ -84,14 +84,14 @@ public partial class SportBuddiesDbContext : DbContext
 
         modelBuilder.Entity<Photo>(entity =>
         {
-            entity.HasKey(e => e.PhotoId).HasName("PK__Photo__21B7B58215096E24");
+            entity.HasKey(e => e.PhotoId).HasName("PK__Photo__21B7B582F3B04B2B");
 
             entity.HasOne(d => d.Game).WithMany(p => p.Photos).HasConstraintName("FK__Photo__GameID__2F10007B");
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCAC0D11521A");
+            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCAC2D7E06EA");
 
             entity.HasOne(d => d.FavoriteSportNavigation).WithMany(p => p.Users).HasConstraintName("FK__User__FavoriteSp__276EDEB3");
         });
