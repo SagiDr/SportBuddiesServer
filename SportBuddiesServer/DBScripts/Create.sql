@@ -24,7 +24,7 @@ CREATE TABLE [User] (
     Gender VARCHAR(255),
     IsAdmin VARCHAR(3) CHECK (IsAdmin IN ('YES', 'NO')),
     ProfileImageExtention VARCHAR(255),
-    FavoriteSport INT,   -- 1 - Basketball,2 - Football, 3 - vollyball
+    FavoriteSport varchar,   -- 1 - Basketball,2 - Football, 3 - vollyball
     FOREIGN KEY (FavoriteSport) REFERENCES GameType(IdType)
 );
 
@@ -34,7 +34,7 @@ CREATE TABLE [GameDetails] (  -- Renamed from Game to GameDetails
     [Date] DATE,
     [Time] TIME,
     [Location] VARCHAR(255),
-    GameType INT,
+    GameType VARCHAR CHECK (State IN ('Basketball', 'Football','volleyball')),
     [State] VARCHAR(10) CHECK (State IN ('Private', 'Public')),
     Score VARCHAR(50),
     Notes TEXT,
@@ -115,6 +115,8 @@ SELECT * FROM [GameDetails];
 SELECT * FROM [User];
 SELECT * FROM [GameType];
 SELECT * FROM [GameUsers];
+
+
 
 
 -- scaffold-DbContext "Server = (localdb)\MSSQLLocalDB;Initial Catalog=SportBuddiesDB;User ID=SportBuddiesAdminLogin;Password=thePassword;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir Models -Context SportBuddiesDbContext -DataAnnotations –force
