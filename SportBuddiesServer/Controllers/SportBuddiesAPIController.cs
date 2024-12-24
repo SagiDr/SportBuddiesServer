@@ -191,7 +191,7 @@ namespace SportBuddiesServer.Controllers
         {
             try
             {
-                HttpContext.Session.Clear(); //Logout any previous login attempt
+                //HttpContext.Session.Clear(); //Logout any previous login attempt
 
                 //Create model user class
                 Models.GameDetail modelsgameDetails = gameDetailsDTO.GetModels();
@@ -199,7 +199,7 @@ namespace SportBuddiesServer.Controllers
                 context.GameDetails.Add(modelsgameDetails);
                 context.SaveChanges();
 
-                //User was added!
+                //Game was added!
                 DTO.GameDetails dtogameDetails = new DTO.GameDetails(modelsgameDetails);
                 return Ok(dtogameDetails);
             }
@@ -208,6 +208,8 @@ namespace SportBuddiesServer.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+
 
         //Helper functions
 

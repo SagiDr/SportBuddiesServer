@@ -11,16 +11,16 @@ Use SportBuddiesDB
 Go
 CREATE TABLE [GameType] (
     IdType INT PRIMARY KEY IDENTITY(1,1),
-    Name NVARCHAR(255),
+    [Name] NVARCHAR(255),
     IconExtention NVARCHAR(255),
     CourtExtention NVARCHAR(255)
 );
 
 CREATE TABLE [User] (
     UserID INT PRIMARY KEY IDENTITY(1,1),
-    Name VARCHAR(255),
+    [Name] VARCHAR(255),
     Email VARCHAR(255),
-    Password VARCHAR(255),
+    [Password] VARCHAR(255),
     Gender VARCHAR(255),
     IsAdmin VARCHAR(3) CHECK (IsAdmin IN ('YES', 'NO')),
     ProfileImageExtention VARCHAR(255),
@@ -31,11 +31,11 @@ CREATE TABLE [User] (
 CREATE TABLE [GameDetails] (  -- Renamed from Game to GameDetails
     GameID INT PRIMARY KEY IDENTITY(1,1),
     GameName VARCHAR(255),
-    Date DATE,
-    Time TIME,
-    Location VARCHAR(255),
+    [Date] DATE,
+    [Time] TIME,
+    [Location] VARCHAR(255),
     GameType INT,
-    State VARCHAR(10) CHECK (State IN ('Private', 'Public')),
+    [State] VARCHAR(10) CHECK (State IN ('Private', 'Public')),
     Score VARCHAR(50),
     Notes TEXT,
     Competitive VARCHAR(255),
@@ -50,7 +50,7 @@ CREATE TABLE [GameDetails] (  -- Renamed from Game to GameDetails
 CREATE TABLE [Photo] (
     PhotoID INT PRIMARY KEY IDENTITY(1,1),
     ImageURL VARCHAR(255),
-    Description TEXT,
+    [Description] TEXT,
     GameID INT,
     FOREIGN KEY (GameID) REFERENCES [GameDetails](GameID)
 );
@@ -60,7 +60,7 @@ CREATE TABLE [Messages] (
     SenderID INT,
     ReceiverID INT,
     MessageContent TEXT,
-    Timestamp DATETIME,
+    [Timestamp] DATETIME,
     FOREIGN KEY (SenderID) REFERENCES [User](UserID),
     FOREIGN KEY (ReceiverID) REFERENCES [User](UserID)
 );
@@ -68,7 +68,7 @@ CREATE TABLE [Messages] (
 CREATE TABLE [GameRoles] (
     RoleID INT PRIMARY KEY IDENTITY(1,1),
     GameTypeID INT,
-    Name NVARCHAR(255),
+    [Name] NVARCHAR(255),
     PositionX INT,
     PositionY INT,
     FOREIGN KEY (GameTypeID) REFERENCES GameType(IdType)
