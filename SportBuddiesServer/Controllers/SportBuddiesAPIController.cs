@@ -125,7 +125,6 @@ namespace SportBuddiesServer.Controllers
             {
                 return Unauthorized("User is not logged in");
             }
-
             //Get model user class from DB with matching email. 
             Models.User? user = context.GetUser(userEmail);
             //Clear the tracking of all objects to avoid double tracking
@@ -135,10 +134,6 @@ namespace SportBuddiesServer.Controllers
             {
                 return Unauthorized("User is not found in the database");
             }
-
-
-
-
             //Read all files sent
             long imagesSize = 0;
 
@@ -174,11 +169,9 @@ namespace SportBuddiesServer.Controllers
                         //Delete the file if it is not supported!
                         System.IO.File.Delete(filePath);
                     }
-
                 }
-
             }
-            //Upadte image extention in DB
+            //Update image extention in DB
             context.Entry(user).State = EntityState.Modified;
             context.SaveChanges();
             DTO.User dtoUser = new DTO.User(user);
