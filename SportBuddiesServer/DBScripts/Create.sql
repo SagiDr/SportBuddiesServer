@@ -97,6 +97,11 @@ INSERT INTO [User] (Name, Email, Password, Gender, IsAdmin, ProfileImageExtentio
 VALUES ('test', 'test@test.com', '12', 'Male', 'YES', NULL, NULL);
 GO
 
+
+-- Insert into GameType table
+INSERT INTO [GameType] ([Name], IconExtention, CourtExtention)
+VALUES ('Basketball', NULL, NULL),('Soccer', NULL, NULL),('Volleyball', NULL, NULL);
+
 -- Check if the login already exists before creating it
 IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'SportBuddiesAdminLogin')
 BEGIN
