@@ -129,7 +129,6 @@ SELECT * FROM [User];
 SELECT * FROM [GameType];
 SELECT * FROM [GameUsers];
 
-DROP DATABASE SportBuddiesDB;
 
 
 

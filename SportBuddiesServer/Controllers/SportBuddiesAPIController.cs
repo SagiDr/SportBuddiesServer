@@ -202,6 +202,57 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
+        [HttpGet("games")]
+        public IActionResult GetGames()
+        {
+            try
+            {
+                var games = context.GameDetails.Include(g => g.Creator).ToList();
+                var dtoGames = games.Select(g => new DTO.GameDetails(g)).ToList();
+                return Ok(dtoGames);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("joinGame")]
+        public IActionResult JoinGame(int gameId)
+        {
+            try
+            {
+                var userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User is not logged in");
+                }
+
+                var user = context.Users.SingleOrDefault(u => u.Email == userEmail);
+                if (user == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                var game = context.GameDetails.SingleOrDefault(g => g.GameId == gameId);
+                if (game == null)
+                {
+                    return NotFound("Game not found");
+                }
+
+                var gameUser = new GameUser { GameId = game.GameId, UserId = user.UserId };
+                context.GameUsers.Add(gameUser);
+                context.SaveChanges();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
 
 
         //Helper functions
