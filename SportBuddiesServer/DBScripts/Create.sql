@@ -38,7 +38,7 @@ CREATE TABLE [GameDetails] (
     [Date] DATE,
     [Time] TIME,
     [Location] VARCHAR(255),
-    GameType INT,  -- Changed from VARCHAR(255) to INT to match GameType(IdType)
+    GameType INT,
     [State] VARCHAR(10) CHECK (State IN ('Private', 'Public')),
     Score VARCHAR(50),
     Notes TEXT,
