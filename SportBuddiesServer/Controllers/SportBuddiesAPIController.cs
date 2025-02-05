@@ -217,6 +217,25 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
+        [HttpGet("GetGameDetailsByGameId")]
+        public IActionResult GetGameDetailsByGameId([FromQuery] int gameId)
+        {
+            try
+            {
+                GameDetail? g = context.GameDetails.Where(gg => gg.GameId == gameId).FirstOrDefault();
+                if (g == null)
+                {
+                    return BadRequest($"No Such Game ID: {gameId}");
+                }
+                DTO.GameDetails dtoGameDetails = new DTO.GameDetails(g); 
+                return Ok(dtoGameDetails);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("joinGame")]
         public IActionResult JoinGame(int gameId)
         {
