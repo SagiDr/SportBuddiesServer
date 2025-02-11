@@ -272,7 +272,24 @@ namespace SportBuddiesServer.Controllers
         }
 
 
+        [HttpGet("gametypes")]
+        public IActionResult GetGameTypes()
+        {
+            try
+            {
+                var gameTypes = context.GameTypes.ToList();
+                if (gameTypes == null || gameTypes.Count == 0)
+                {
+                    return NotFound("No game types found.");
+                }
 
+                return Ok(gameTypes);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         //Helper functions
 
