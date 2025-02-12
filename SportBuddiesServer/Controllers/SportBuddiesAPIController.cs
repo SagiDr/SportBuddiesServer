@@ -272,7 +272,7 @@ namespace SportBuddiesServer.Controllers
         }
 
 
-        [HttpGet("gametypes")]
+        [HttpGet("gameTypes")]
         public IActionResult GetGameTypes()
         {
             try
@@ -290,6 +290,53 @@ namespace SportBuddiesServer.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+
+        [HttpDelete("games/{id}")]
+        public IActionResult DeleteGame(int id)
+        {
+            try
+            {
+                var game = context.GameDetails.Find(id);
+                if (game == null)
+                {
+                    return NotFound($"No game found with ID: {id}");
+                }
+
+                context.GameDetails.Remove(game);
+                context.SaveChanges();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpGet("counts")]
+        public IActionResult GetCounts()
+        {
+            try
+            {
+                var playerCount = context.Users.Count();
+                var gameCount = context.GameDetails.Count();
+
+                var counts = new
+                {
+                    PlayerCount = playerCount,
+                    GameCount = gameCount
+                };
+
+                return Ok(counts);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
 
         //Helper functions
 
