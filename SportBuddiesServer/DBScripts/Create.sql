@@ -102,6 +102,10 @@ INSERT INTO [User] (Name, Email, Password, Gender, IsAdmin, ProfileImageExtentio
 VALUES ('test', 'test@test.com', '12', 'Male', 'YES', NULL, 1);
 GO
 
+INSERT INTO [User] (Name, Email, Password, Gender, IsAdmin, ProfileImageExtention, FavoriteSport)
+VALUES ('sagi', 'sagi@sagi.com', '12', 'Male', 'NO', NULL, 2);
+GO
+
 
 -- Check if the login already exists before creating it
 IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'SportBuddiesAdminLogin')
