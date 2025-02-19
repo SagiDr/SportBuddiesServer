@@ -107,6 +107,16 @@ VALUES ('sagi', 'sagi@sagi.com', '12', 'Male', 'NO', NULL, 2);
 GO
 
 
+-- הוספת 3 משחקי דמה
+INSERT INTO [GameDetails] 
+    (GameName, [Date], [Time], [Location], GameType, [State], Score, Notes, Competitive, Link, LocationLength, LocationWidth, CreatorId) 
+VALUES 
+    ('Basketball Match 1', '2025-02-20', '19:00', 'Court 1', 1, 'Public', '0-0', 'First game of the season', 'Competitive', 'http://example.com', 20.0, 10.0, 1),
+    ('Soccer Match 2', '2025-02-22', '16:00', 'Stadium 5', 2, 'Private', '3-1', 'Friendly match between friends', 'Casual', 'http://example2.com', 100.0, 60.0, 2),
+    ('Volleyball Game 3', '2025-02-25', '18:00', 'Beach Court', 3, 'Public', '0-0', 'Beach volleyball tournament', 'Competitive', 'http://example3.com', 30.0, 15.0, 1);
+GO
+
+
 -- Check if the login already exists before creating it
 IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'SportBuddiesAdminLogin')
 BEGIN
