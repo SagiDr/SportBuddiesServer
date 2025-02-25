@@ -34,6 +34,7 @@ namespace SportBuddiesServer.DTO
         public decimal? LocationWidth { get; set; }
 
         public int? CreatorId { get; set; }
+        public User? Creator { get; set; }
 
         public GameDetails() { }
 
@@ -53,6 +54,8 @@ namespace SportBuddiesServer.DTO
             LocationLength = modelUser.LocationLength;
             LocationWidth = modelUser.LocationWidth;
             CreatorId = modelUser.CreatorId;
+            if (modelUser.Creator != null)
+                Creator = new User(modelUser.Creator);
         }
 
         public Models.GameDetail GetModels()

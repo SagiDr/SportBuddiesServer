@@ -92,10 +92,12 @@ CREATE TABLE [GameUsers] (
     FOREIGN KEY (UserId) REFERENCES [User](UserID)
 );
 
-
--- Insert into GameType table
+-- Insert into GameType table with court images
 INSERT INTO [GameType] ([Name], IconExtention, CourtExtention)
-VALUES ('Basketball', NULL, NULL),('Soccer', NULL, NULL),('Volleyball', NULL, NULL);
+VALUES 
+    ('Basketball', NULL, 'basketballcourt.png'),
+    ('Soccer', NULL, 'soccerfield.png'),
+    ('Volleyball', NULL, 'volleyballcourt.png');
 
 -- Inserting a user into the User table
 INSERT INTO [User] (Name, Email, Password, Gender, IsAdmin, ProfileImageExtention, FavoriteSport)
@@ -142,6 +144,7 @@ SELECT * FROM [GameDetails];
 SELECT * FROM [User];
 SELECT * FROM [GameType];
 SELECT * FROM [GameUsers];
+select * from GameRoles
 
 
 -- scaffold-DbContext "Server = (localdb)\MSSQLLocalDB;Initial Catalog=SportBuddiesDB;User ID=SportBuddiesAdminLogin;Password=thePassword;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir Models -Context SportBuddiesDbContext -DataAnnotations –force

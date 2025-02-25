@@ -222,7 +222,7 @@ namespace SportBuddiesServer.Controllers
         {
             try
             {
-                GameDetail? g = context.GameDetails.Where(gg => gg.GameId == gameId).FirstOrDefault();
+                GameDetail? g = context.GameDetails.Include(gg => gg.Creator).Where(gg => gg.GameId == gameId).FirstOrDefault();
                 if (g == null)
                 {
                     return BadRequest($"No Such Game ID: {gameId}");
@@ -259,7 +259,20 @@ namespace SportBuddiesServer.Controllers
                     return NotFound("Game not found");
                 }
 
-                var gameUser = new GameUser { GameId = game.GameId, UserId = user.UserId };
+               
+                var defaultRole = context.GameRoles.FirstOrDefault(r => r.Name == "Player");
+                if (defaultRole == null)
+                {
+                    return BadRequest("Default role 'Player' not found.");
+                }
+
+                var gameUser = new GameUser
+                {
+                    GameId = game.GameId,
+                    UserId = user.UserId,
+                    RoleId = defaultRole.RoleId 
+                };
+
                 context.GameUsers.Add(gameUser);
                 context.SaveChanges();
 
