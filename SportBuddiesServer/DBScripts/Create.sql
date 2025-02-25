@@ -118,6 +118,43 @@ VALUES
     ('Volleyball Game 3', '2025-02-25', '18:00', 'Beach Court', 3, 'Public', '0-0', 'Beach volleyball tournament', 'Competitive', 'http://example3.com', 30.0, 15.0, 1);
 GO
 
+-- Insert roles for Basketball
+INSERT INTO [GameRoles] (GameTypeID, [Name], PositionX, PositionY)
+VALUES 
+    (1, 'Point Guard', 1, 1),
+    (1, 'Shooting Guard', 2, 1),
+    (1, 'Small Forward', 3, 1),
+    (1, 'Power Forward', 4, 1),
+    (1, 'Center', 5, 1);
+
+-- Insert roles for Soccer
+INSERT INTO [GameRoles] (GameTypeID, [Name], PositionX, PositionY)
+VALUES 
+    (2, 'Goalkeeper', 1, 1),
+    (2, 'Right Back', 2, 1),
+    (2, 'Center Back', 3, 1),
+    (2, 'Center Back', 4, 1),
+    (2, 'Left Back', 5, 1),
+    (2, 'Right Midfield', 6, 1),
+    (2, 'Center Midfield', 7, 1),
+    (2, 'Center Midfield', 8, 1),
+    (2, 'Left Midfield', 9, 1),
+    (2, 'Right Wing', 10, 1),
+    (2, 'Striker', 11, 1),
+    (2, 'Left Wing', 12, 1);
+
+-- Insert roles for Volleyball
+INSERT INTO [GameRoles] (GameTypeID, [Name], PositionX, PositionY)
+VALUES 
+    (3, 'Setter', 1, 1),
+    (3, 'Outside Hitter', 2, 1),
+    (3, 'Opposite Hitter', 3, 1),
+    (3, 'Middle Blocker', 4, 1),
+    (3, 'Libero', 5, 1);
+GO
+
+
+
 
 -- Check if the login already exists before creating it
 IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'SportBuddiesAdminLogin')

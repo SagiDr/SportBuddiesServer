@@ -259,28 +259,39 @@ namespace SportBuddiesServer.Controllers
                     return NotFound("Game not found");
                 }
 
-               
-                var defaultRole = context.GameRoles.FirstOrDefault(r => r.Name == "Player");
-                if (defaultRole == null)
+                // Check if the user is already registered for the game
+                bool alreadyJoined = context.GameUsers.Any(gu => gu.GameId == gameId && gu.UserId == user.UserId);
+                if (alreadyJoined)
                 {
-                    return BadRequest("Default role 'Player' not found.");
+                    return BadRequest("User is already registered for this game.");
+                }
+
+                // Find an available role based on the game type (GameType)
+                var availableRole = context.GameRoles
+                    .Where(r => r.GameTypeId == game.GameType) // Use GameType instead of GameTypeId
+                    .OrderBy(r => Guid.NewGuid()) // Select a random role
+                    .FirstOrDefault();
+
+                if (availableRole == null)
+                {
+                    return BadRequest("No available roles for this game type.");
                 }
 
                 var gameUser = new GameUser
                 {
                     GameId = game.GameId,
                     UserId = user.UserId,
-                    RoleId = defaultRole.RoleId 
+                    RoleId = availableRole.RoleId // Assign the selected role
                 };
 
                 context.GameUsers.Add(gameUser);
                 context.SaveChanges();
 
-                return Ok();
+                return Ok(new { Message = "Successfully joined the game!", RoleAssigned = availableRole.Name });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { Error = ex.Message });
             }
         }
 
