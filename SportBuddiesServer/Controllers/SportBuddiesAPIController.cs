@@ -296,6 +296,75 @@ namespace SportBuddiesServer.Controllers
         }
 
 
+        [HttpGet("GetUserByEmail")]
+        public IActionResult GetUserByEmail([FromQuery] string email)
+        {
+            try
+            {
+
+                //Read user by email
+
+                Models.User u = context.GetUser(email);
+                DTO.User user = new DTO.User(u);
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
+        [HttpGet("GetAllEmails")]
+        public IActionResult GetAllEmails()
+        {
+            try
+            {
+                //Read all emails of every user in the app
+
+                List<string> list = context.GetAllEmails();
+
+                return Ok(list);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
+
+        [HttpPost("UpdateUserPassword")]
+        public IActionResult UpdateUserPassword([FromBody] DTO.User userDto)
+        {
+            try
+            {
+                //Get model user class from DB with matching email. 
+                Models.User? theUser = context.GetUser(userDto.Email);
+                //Clear the tracking of all objects to avoid double tracking
+                context.ChangeTracker.Clear();
+
+                //Check if the user that is logged in is the same user of the task
+
+                if (theUser == null || (userDto.UserId != theUser.UserId))
+                {
+                    return Unauthorized("Failed to update user");
+                }
+
+                Models.User appUser = userDto.GetModels();
+
+                context.Entry(appUser).State = EntityState.Modified;
+
+                context.SaveChanges();
+
+                //Task was updated!
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
+
         [HttpGet("gameTypes")]
         public IActionResult GetGameTypes()
         {
