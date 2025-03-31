@@ -202,6 +202,47 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
+        [HttpGet("games/{gameId}/players")]
+        public IActionResult GetPlayersByGameId(int gameId)
+        {
+            try
+            {
+                var game = context.GameDetails.FirstOrDefault(g => g.GameId == gameId);
+                if (game == null)
+                    return NotFound($"Game with ID {gameId} not found.");
+
+                // שלב 1: שליפת מידע מהמסד (נתונים גולמיים)
+                var rawPlayers = context.GameUsers
+                    .Where(gu => gu.GameId == gameId)
+                    .Join(context.Users,
+                          gu => gu.UserId,
+                          u => u.UserId,
+                          (gu, u) => new { User = u, gu.RoleId })
+                    .Join(context.GameRoles,
+                          gu => gu.RoleId,
+                          r => r.RoleId,
+                          (gu, r) => new { gu.User, RoleName = r.Name })
+                    .ToList();
+
+                var players = rawPlayers.Select(p =>
+                {
+                    var dto = new DTO.User(p.User);
+                    dto.RoleName = p.RoleName;
+                    dto.ProfileImageExtention = GetProfileImageVirtualPath(dto.UserId);
+                    return dto;
+                }).ToList();
+
+                return Ok(players);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+
+
         [HttpGet("games")]
         public IActionResult GetGames()
         {
@@ -331,7 +372,7 @@ namespace SportBuddiesServer.Controllers
             }
 
         }
-
+        
         [HttpPost("UpdateUserPassword")]
         public IActionResult UpdateUserPassword([FromBody] DTO.User userDto)
         {
@@ -385,16 +426,60 @@ namespace SportBuddiesServer.Controllers
         }
 
 
+        [HttpGet("myGames")]
+        public IActionResult GetMyGames()
+        {
+            try
+            {
+                // בדיקה אם המשתמש מחובר
+                var userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User is not logged in");
+                }
+
+                // הבאת המשתמש מה־DB לפי האימייל
+                var user = context.Users.FirstOrDefault(u => u.Email == userEmail);
+                if (user == null)
+                {
+                    return NotFound("User not found");
+                }
+
+                // הבאת כל המשחקים שהוא הצטרף אליהם (מטבלת GameUsers)
+                var joinedGames = context.GameUsers
+                    .Include(gu => gu.Game) // כוללים את פרטי המשחק
+                        .ThenInclude(g => g.Creator) // כוללים גם את היוצר של המשחק
+                    .Where(gu => gu.UserId == user.UserId)
+                    .Select(gu => new DTO.GameDetails(gu.Game))
+                    .ToList();
+
+                return Ok(joinedGames);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+
         [HttpDelete("games/{id}")]
         public IActionResult DeleteGame(int id)
         {
             try
             {
-                var game = context.GameDetails.Find(id);
+                var game = context.GameDetails
+                    .Include(g => g.GameUsers) // אם יש קשרים כאלה
+                    .FirstOrDefault(g => g.GameId == id);
+
                 if (game == null)
                 {
                     return NotFound($"No game found with ID: {id}");
                 }
+
+                // אם יש GameUsers – תמחק גם אותם
+                var gameUsers = context.GameUsers.Where(gu => gu.GameId == id).ToList();
+                context.GameUsers.RemoveRange(gameUsers);
 
                 context.GameDetails.Remove(game);
                 context.SaveChanges();
@@ -407,6 +492,41 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
+        [HttpPost("LeaveGame")]
+        public IActionResult LeaveGame(int gameId)
+        {
+            try
+            {
+                var userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User is not logged in");
+                }
+
+                var user = context.Users.SingleOrDefault(u => u.Email == userEmail);
+                if (user == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                var gameUser = context.GameUsers
+                    .SingleOrDefault(gu => gu.GameId == gameId && gu.UserId == user.UserId);
+
+                if (gameUser == null)
+                {
+                    return NotFound("User is not registered to this game.");
+                }
+
+                context.GameUsers.Remove(gameUser);
+                context.SaveChanges();
+
+                return Ok(new { Message = "Successfully left the game." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
 
         [HttpGet("counts")]
         public IActionResult GetCounts()

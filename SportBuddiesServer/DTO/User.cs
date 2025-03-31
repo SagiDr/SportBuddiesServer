@@ -23,6 +23,8 @@ namespace SportBuddiesServer.DTO
 
         public int? FavoriteSport { get; set; }
 
+        public string? RoleName { get; set; }
+
         public User() { }
 
         public User(Models.User modelUser) 
@@ -35,6 +37,7 @@ namespace SportBuddiesServer.DTO
             IsAdmin = modelUser.IsAdmin;
             ProfileImageExtention = modelUser.ProfileImageExtention;
             FavoriteSport = modelUser.FavoriteSport;
+          
         }
 
         public Models.User GetModels()
@@ -48,8 +51,7 @@ namespace SportBuddiesServer.DTO
                 Gender = this.Gender,
                 IsAdmin = this.IsAdmin,
                 ProfileImageExtention = this.ProfileImageExtention,
-                FavoriteSport = this.FavoriteSport
-
+                FavoriteSport = this.FavoriteSport,
             };
             return modelsUser;
         }
