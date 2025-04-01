@@ -211,7 +211,6 @@ namespace SportBuddiesServer.Controllers
                 if (game == null)
                     return NotFound($"Game with ID {gameId} not found.");
 
-                // שלב 1: שליפת מידע מהמסד (נתונים גולמיים)
                 var rawPlayers = context.GameUsers
                     .Where(gu => gu.GameId == gameId)
                     .Join(context.Users,
@@ -221,14 +220,19 @@ namespace SportBuddiesServer.Controllers
                     .Join(context.GameRoles,
                           gu => gu.RoleId,
                           r => r.RoleId,
-                          (gu, r) => new { gu.User, RoleName = r.Name })
+                          (gu, r) => new { gu.User, Role = r }) // ⬅️ שומר את כל האובייקט של Role
                     .ToList();
 
                 var players = rawPlayers.Select(p =>
                 {
                     var dto = new DTO.User(p.User);
-                    dto.RoleName = p.RoleName;
+                    dto.RoleName = p.Role.Name;
                     dto.ProfileImageExtention = GetProfileImageVirtualPath(dto.UserId);
+
+                    // ⬇️ הוספה של מיקום מהתפקיד
+                    dto.PositionX = p.Role.PositionX;
+                    dto.PositionY = p.Role.PositionY;
+
                     return dto;
                 }).ToList();
 
@@ -239,6 +243,7 @@ namespace SportBuddiesServer.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
 
 
 

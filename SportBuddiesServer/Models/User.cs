@@ -39,6 +39,7 @@ public partial class User
 
     public int? FavoriteSport { get; set; }
 
+
     [ForeignKey("FavoriteSport")]
     [InverseProperty("Users")]
     public virtual GameType? FavoriteSportNavigation { get; set; }
