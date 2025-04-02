@@ -232,6 +232,7 @@ namespace SportBuddiesServer.Controllers
                     // ⬇️ הוספה של מיקום מהתפקיד
                     dto.PositionX = p.Role.PositionX;
                     dto.PositionY = p.Role.PositionY;
+                    
 
                     return dto;
                 }).ToList();

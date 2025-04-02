@@ -27,6 +27,7 @@ namespace SportBuddiesServer.DTO
 
         public int? PositionX { get; set; }
         public int? PositionY { get; set; }
+        
 
         public User() { }
 
