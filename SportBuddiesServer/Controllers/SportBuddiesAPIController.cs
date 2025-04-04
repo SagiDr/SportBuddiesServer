@@ -557,6 +557,121 @@ namespace SportBuddiesServer.Controllers
         }
 
 
+        [HttpPost("games/{gameId}/photos")]
+        public async Task<IActionResult> UploadGamePhotoAsync(int gameId, IFormFile file, [FromForm] string description)
+        {
+            // Check if who is logged in
+            string? userEmail = HttpContext.Session.GetString("loggedInUser");
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized("User is not logged in");
+            }
+
+            // Get model user class from DB with matching email
+            Models.User? user = context.GetUser(userEmail);
+            if (user == null)
+            {
+                return Unauthorized("User is not found in the database");
+            }
+
+            // Check if the game exists
+            var game = context.GameDetails.FirstOrDefault(g => g.GameId == gameId);
+            if (game == null)
+            {
+                return NotFound($"Game with ID {gameId} not found.");
+            }
+
+            // Check if user is a participant of the game
+            bool isParticipant = context.GameUsers.Any(gu => gu.GameId == gameId && gu.UserId == user.UserId);
+            if (!isParticipant && game.CreatorId != user.UserId)
+            {
+                return Unauthorized("Only game participants or the creator can upload photos.");
+            }
+
+            // Process the photo upload
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file was uploaded.");
+            }
+
+            // Check the file extension
+            string[] allowedExtensions = { ".png", ".jpg", ".jpeg" };
+            string extension = "";
+            if (file.FileName.LastIndexOf(".") > 0)
+            {
+                extension = file.FileName.Substring(file.FileName.LastIndexOf(".")).ToLower();
+            }
+            if (!allowedExtensions.Contains(extension))
+            {
+                return BadRequest("File sent with non-supported extension. Only .png, .jpg, and .jpeg are supported.");
+            }
+
+            // Create a new photo record
+            var photo = new Models.Photo
+            {
+                Description = description,
+                GameId = gameId
+            };
+
+            context.Photos.Add(photo);
+            context.SaveChanges();
+
+            // Save the file in a dedicated folder for game photos
+            // Make sure the directory exists
+            string gamePhotosDir = $"{this.webHostEnvironment.WebRootPath}\\gamePhotos\\{gameId}";
+            Directory.CreateDirectory(gamePhotosDir);
+
+            // Save the file
+            string fileName = $"{photo.PhotoId}{extension}";
+            string filePath = $"{gamePhotosDir}\\{fileName}";
+
+            using (var stream = System.IO.File.Create(filePath))
+            {
+                await file.CopyToAsync(stream);
+
+                if (IsImage(stream))
+                {
+                    // Update the image URL in the database
+                    photo.ImageUrl = $"/gamePhotos/{gameId}/{fileName}";
+                    context.SaveChanges();
+
+                    DTO.Photo dtoPhoto = new DTO.Photo(photo);
+                    return Ok(dtoPhoto);
+                }
+                else
+                {
+                    // Delete the file and DB record if not a valid image
+                    System.IO.File.Delete(filePath);
+                    context.Photos.Remove(photo);
+                    context.SaveChanges();
+                    return BadRequest("The uploaded file is not a valid image.");
+                }
+            }
+        }
+
+        [HttpGet("games/{gameId}/photos")]
+        public IActionResult GetGamePhotos(int gameId)
+        {
+            try
+            {
+                var game = context.GameDetails.FirstOrDefault(g => g.GameId == gameId);
+                if (game == null)
+                    return NotFound($"Game with ID {gameId} not found.");
+
+                var photos = context.Photos
+                    .Where(p => p.GameId == gameId)
+                    .ToList();
+
+                var dtoPhotos = photos.Select(p => new DTO.Photo(p)).ToList();
+                return Ok(dtoPhotos);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
         //Helper functions
 
         //this function gets a file stream and check if it is an image
