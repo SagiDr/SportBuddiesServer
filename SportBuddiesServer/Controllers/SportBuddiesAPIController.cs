@@ -671,6 +671,63 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
+        [HttpDelete("photos/{photoId}")]
+        public IActionResult DeletePhoto(int photoId)
+        {
+            try
+            {
+                // Check who is logged in
+                string? userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User is not logged in");
+                }
+
+                // Get the user from the database
+                Models.User? user = context.GetUser(userEmail);
+                if (user == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                // Find the photo
+                var photo = context.Photos.Include(p => p.Game).FirstOrDefault(p => p.PhotoId == photoId);
+                if (photo == null)
+                {
+                    return NotFound($"Photo not found");
+                }
+
+                // Check if user is the game creator
+                bool isGameCreator = photo.Game?.CreatorId == user.UserId;
+
+                // Only game creator can delete photos
+                if (!isGameCreator)
+                {
+                    return Unauthorized("Only game creator can delete photos");
+                }
+
+                // Delete the physical file if it exists
+                if (!string.IsNullOrEmpty(photo.ImageUrl))
+                {
+                    string filePath = $"{this.webHostEnvironment.WebRootPath}{photo.ImageUrl.Replace('/', '\\')}";
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+
+                // Remove the photo record from the database
+                context.Photos.Remove(photo);
+                context.SaveChanges();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
 
         //Helper functions
 
