@@ -20,6 +20,55 @@ namespace SportBuddiesServer.Controllers
             this.webHostEnvironment = env;
         }
 
+        // New method to check game capacity limits based on game type
+        private bool HasGameReachedCapacity(int gameId)
+        {
+            var game = context.GameDetails.FirstOrDefault(g => g.GameId == gameId);
+            if (game == null)
+                return false;
+
+            var currentPlayerCount = context.GameUsers.Count(gu => gu.GameId == gameId);
+
+            // Get maximum player count based on game type
+            int maxPlayers;
+            switch (game.GameType)
+            {
+                case 1: // Basketball
+                    maxPlayers = 5;
+                    break;
+                case 2: // Soccer
+                    maxPlayers = 11; // Changed to 11 - standard soccer team size
+                    break;
+                case 3: // Volleyball
+                    maxPlayers = 6; // Changed to 6 - standard volleyball team size
+                    break;
+                default:
+                    maxPlayers = 10; // Default maximum
+                    break;
+            }
+
+            // Check if current player count has reached the maximum
+            return currentPlayerCount >= maxPlayers;
+        }
+
+        // New method to get available roles for a game
+        private List<GameRole> GetAvailableRoles(int gameId, int gameTypeId)
+        {
+            // Get all roles for this game type
+            var allRoles = context.GameRoles.Where(r => r.GameTypeId == gameTypeId).ToList();
+
+            // Get roles that are already assigned in this game
+            var assignedRoleIds = context.GameUsers
+                .Where(gu => gu.GameId == gameId)
+                .Select(gu => gu.RoleId)
+                .ToList();
+
+            // Return roles that are not yet assigned
+            return allRoles.Where(r => !assignedRoleIds.Contains(r.RoleId)).ToList();
+        }
+
+
+
         [HttpPost("login")]
         public IActionResult Login([FromBody] DTO.LoginInfo loginDto)
         {
@@ -59,6 +108,12 @@ namespace SportBuddiesServer.Controllers
 
                 //Create model user class
                 Models.User modelsUser = userDto.GetModels();
+
+                // Set default profile image path if not provided
+                if (string.IsNullOrEmpty(modelsUser.ProfileImageExtention))
+                {
+                    modelsUser.ProfileImageExtention = "/profileImages/default.png";
+                }
 
                 context.Users.Add(modelsUser);
                 context.SaveChanges();
@@ -341,6 +396,54 @@ namespace SportBuddiesServer.Controllers
                 return BadRequest(new { Error = ex.Message });
             }
         }
+
+        // New endpoint to get game capacity information
+        [HttpGet("games/{gameId}/capacity")]
+        public IActionResult GetGameCapacity(int gameId)
+        {
+            try
+            {
+                var game = context.GameDetails.FirstOrDefault(g => g.GameId == gameId);
+                if (game == null)
+                    return NotFound($"Game with ID {gameId} not found.");
+
+                var currentPlayerCount = context.GameUsers.Count(gu => gu.GameId == gameId);
+
+                // Get maximum player count based on game type
+                int maxPlayers;
+                switch (game.GameType)
+                {
+                    case 1: // Basketball
+                        maxPlayers = 5;
+                        break;
+                    case 2: // Soccer
+                        maxPlayers = 11;
+                        break;
+                    case 3: // Volleyball
+                        maxPlayers = 6;
+                        break;
+                    default:
+                        maxPlayers = 10; // Default maximum
+                        break;
+                }
+
+                // Get available roles
+                var availableRoles = GetAvailableRoles(gameId, game.GameType.Value);
+
+                return Ok(new
+                {
+                    CurrentPlayers = currentPlayerCount,
+                    MaxPlayers = maxPlayers,
+                    AvailablePositions = availableRoles.Count,
+                    IsFull = currentPlayerCount >= maxPlayers || availableRoles.Count == 0
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
 
 
         [HttpGet("GetUserByEmail")]
