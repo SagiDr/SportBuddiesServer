@@ -239,15 +239,19 @@ namespace SportBuddiesServer.Controllers
         {
             try
             {
-                //HttpContext.Session.Clear(); //Logout any previous login attempt
-
-                //Create model user class
+                // Create model user class
                 Models.GameDetail modelsgameDetails = gameDetailsDTO.GetModels();
+
+                // אם המשחק מוגדר כפרטי, צור קוד הזמנה אקראי
+                if (modelsgameDetails.State == "Private")
+                {
+                    modelsgameDetails.Link = GenerateRandomInvitationCode();
+                }
 
                 context.GameDetails.Add(modelsgameDetails);
                 context.SaveChanges();
 
-                //Game was added!
+                // Game was added!
                 DTO.GameDetails dtogameDetails = new DTO.GameDetails(modelsgameDetails);
                 return Ok(dtogameDetails);
             }
@@ -256,6 +260,29 @@ namespace SportBuddiesServer.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // מתודה עזר ליצירת קוד הזמנה אקראי
+        private string GenerateRandomInvitationCode()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            Random random = new Random();
+            return new string(Enumerable.Repeat(chars, 6)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+     
+
+        //// מתודה עזר לחילוץ קוד הזמנה מהשדה Link
+        //private string ExtractInvitationCode(string link)
+        //{
+        //    if (string.IsNullOrEmpty(link) || !link.Contains("#INVITE:"))
+        //        return null;
+
+        //    int inviteIndex = link.IndexOf("#INVITE:");
+        //    return link.Substring(inviteIndex + 8); // 8 הוא האורך של "#INVITE:"
+        //}
+
+
 
         [HttpGet("games/{gameId}/players")]
         public IActionResult GetPlayersByGameId(int gameId)
@@ -309,9 +336,108 @@ namespace SportBuddiesServer.Controllers
         {
             try
             {
-                var games = context.GameDetails.Include(g => g.Creator).ToList();
+                // מחזיר את כל המשחקים (ציבוריים ופרטיים)
+                var games = context.GameDetails
+                    .Include(g => g.Creator)
+                    .ToList();
+
                 var dtoGames = games.Select(g => new DTO.GameDetails(g)).ToList();
                 return Ok(dtoGames);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpPost("joinPrivateGame")]
+        public IActionResult JoinPrivateGame(int gameId, string invitationCode)
+        {
+            try
+            {
+                var userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User is not logged in");
+                }
+
+                var user = context.Users.SingleOrDefault(u => u.Email == userEmail);
+                if (user == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                var game = context.GameDetails.SingleOrDefault(g => g.GameId == gameId);
+                if (game == null)
+                {
+                    return NotFound("Game not found");
+                }
+
+                // בדיקה האם המשחק פרטי וקוד ההזמנה תואם
+                if (game.State == "Private" && game.Link != invitationCode)
+                {
+                    return BadRequest("Invalid invitation code. Please ask the game creator for the correct code.");
+                }
+
+                // בדיקה אם המשתמש כבר רשום למשחק
+                bool alreadyJoined = context.GameUsers.Any(gu => gu.GameId == gameId && gu.UserId == user.UserId);
+                if (alreadyJoined)
+                {
+                    return BadRequest("You are already registered for this game. You can view it in 'My Games'.");
+                }
+
+                // בדיקה אם המשחק מלא
+                if (HasGameReachedCapacity(gameId))
+                {
+                    return BadRequest("This game has reached its maximum player capacity.");
+                }
+
+                // בחירת תפקיד זמין
+                var availableRoles = GetAvailableRoles(gameId, game.GameType.Value);
+                if (!availableRoles.Any())
+                {
+                    return BadRequest("All positions for this game have been filled.");
+                }
+
+                var availableRole = availableRoles.OrderBy(r => Guid.NewGuid()).FirstOrDefault();
+
+                var gameUser = new GameUser
+                {
+                    GameId = game.GameId,
+                    UserId = user.UserId,
+                    RoleId = availableRole.RoleId
+                };
+
+                context.GameUsers.Add(gameUser);
+                context.SaveChanges();
+
+                return Ok(new { Message = "Successfully joined the game!", RoleAssigned = availableRole.Name });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
+
+        [HttpGet("privateGame")]
+        public IActionResult GetPrivateGame(string invitationCode)
+        {
+            try
+            {
+                // חיפוש המשחק לפי קוד ההזמנה
+                var game = context.GameDetails
+                    .Include(g => g.Creator)
+                    .FirstOrDefault(g => g.State == "Private" && g.Link == invitationCode);
+
+                if (game == null)
+                {
+                    return NotFound("No game found with this invitation code");
+                }
+
+                DTO.GameDetails dtoGame = new DTO.GameDetails(game);
+                return Ok(dtoGame);
             }
             catch (Exception ex)
             {
@@ -348,47 +474,51 @@ namespace SportBuddiesServer.Controllers
                 {
                     return Unauthorized("User is not logged in");
                 }
-
+        
                 var user = context.Users.SingleOrDefault(u => u.Email == userEmail);
                 if (user == null)
                 {
                     return Unauthorized("User not found");
                 }
-
+        
                 var game = context.GameDetails.SingleOrDefault(g => g.GameId == gameId);
                 if (game == null)
                 {
                     return NotFound("Game not found");
                 }
-
-                // Check if the user is already registered for the game
+        
+                // בדיקה אם המשתמש כבר רשום למשחק
                 bool alreadyJoined = context.GameUsers.Any(gu => gu.GameId == gameId && gu.UserId == user.UserId);
                 if (alreadyJoined)
                 {
-                    return BadRequest("User is already registered for this game.");
+                    return BadRequest("You are already registered for this game. You can view it in 'My Games'.");
                 }
-
-                // Find an available role based on the game type (GameType)
-                var availableRole = context.GameRoles
-                    .Where(r => r.GameTypeId == game.GameType) // Use GameType instead of GameTypeId
-                    .OrderBy(r => Guid.NewGuid()) // Select a random role
-                    .FirstOrDefault();
-
-                if (availableRole == null)
+        
+                // בדיקה אם המשחק מלא
+                if (HasGameReachedCapacity(gameId))
                 {
-                    return BadRequest("No available roles for this game type.");
+                    return BadRequest("This game has reached its maximum player capacity.");
                 }
-
+        
+                // בחירת תפקיד זמין
+                var availableRoles = GetAvailableRoles(gameId, game.GameType.Value);
+                if (!availableRoles.Any())
+                {
+                    return BadRequest("All positions for this game have been filled.");
+                }
+        
+                var availableRole = availableRoles.OrderBy(r => Guid.NewGuid()).FirstOrDefault();
+                
                 var gameUser = new GameUser
                 {
                     GameId = game.GameId,
                     UserId = user.UserId,
-                    RoleId = availableRole.RoleId // Assign the selected role
+                    RoleId = availableRole.RoleId
                 };
-
+        
                 context.GameUsers.Add(gameUser);
                 context.SaveChanges();
-
+        
                 return Ok(new { Message = "Successfully joined the game!", RoleAssigned = availableRole.Name });
             }
             catch (Exception ex)
@@ -554,15 +684,26 @@ namespace SportBuddiesServer.Controllers
                     return NotFound("User not found");
                 }
 
-                // הבאת כל המשחקים שהוא הצטרף אליהם (מטבלת GameUsers)
-                var joinedGames = context.GameUsers
-                    .Include(gu => gu.Game) // כוללים את פרטי המשחק
-                        .ThenInclude(g => g.Creator) // כוללים גם את היוצר של המשחק
-                    .Where(gu => gu.UserId == user.UserId)
-                    .Select(gu => new DTO.GameDetails(gu.Game))
-                    .ToList();
+                // נארגן את התוצאה בשני אוספים נפרדים
+                var result = new
+                {
+                    // משחקים שהמשתמש יצר
+                    CreatedGames = context.GameDetails
+                        .Include(g => g.Creator)
+                        .Where(g => g.CreatorId == user.UserId)
+                        .Select(g => new DTO.GameDetails(g))
+                        .ToList(),
 
-                return Ok(joinedGames);
+                    // משחקים שהמשתמש הצטרף אליהם (אבל לא יצר)
+                    JoinedGames = context.GameUsers
+                        .Include(gu => gu.Game)
+                            .ThenInclude(g => g.Creator)
+                        .Where(gu => gu.UserId == user.UserId && gu.Game.CreatorId != user.UserId)
+                        .Select(gu => new DTO.GameDetails(gu.Game))
+                        .ToList()
+                };
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
