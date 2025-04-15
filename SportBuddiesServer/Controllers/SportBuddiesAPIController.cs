@@ -377,27 +377,27 @@ namespace SportBuddiesServer.Controllers
                 // בדיקה האם המשחק פרטי וקוד ההזמנה תואם
                 if (game.State == "Private" && game.Link != invitationCode)
                 {
-                    return BadRequest("Invalid invitation code. Please ask the game creator for the correct code.");
+                    return BadRequest(new { Error = "Invalid invitation code. Please ask the game creator for the correct code." });
                 }
 
                 // בדיקה אם המשתמש כבר רשום למשחק
                 bool alreadyJoined = context.GameUsers.Any(gu => gu.GameId == gameId && gu.UserId == user.UserId);
                 if (alreadyJoined)
                 {
-                    return BadRequest("You are already registered for this game. You can view it in 'My Games'.");
+                    return BadRequest(new { Error = "You are already registered for this game. You can view it in 'My Games'." });
                 }
 
                 // בדיקה אם המשחק מלא
                 if (HasGameReachedCapacity(gameId))
                 {
-                    return BadRequest("This game has reached its maximum player capacity.");
+                    return BadRequest(new { Error = "This game has reached its maximum player capacity." });
                 }
 
                 // בחירת תפקיד זמין
                 var availableRoles = GetAvailableRoles(gameId, game.GameType.Value);
                 if (!availableRoles.Any())
                 {
-                    return BadRequest("All positions for this game have been filled.");
+                    return BadRequest(new { Error = "All positions for this game have been filled." });
                 }
 
                 var availableRole = availableRoles.OrderBy(r => Guid.NewGuid()).FirstOrDefault();
@@ -474,51 +474,51 @@ namespace SportBuddiesServer.Controllers
                 {
                     return Unauthorized("User is not logged in");
                 }
-        
+
                 var user = context.Users.SingleOrDefault(u => u.Email == userEmail);
                 if (user == null)
                 {
                     return Unauthorized("User not found");
                 }
-        
+
                 var game = context.GameDetails.SingleOrDefault(g => g.GameId == gameId);
                 if (game == null)
                 {
                     return NotFound("Game not found");
                 }
-        
+
                 // בדיקה אם המשתמש כבר רשום למשחק
                 bool alreadyJoined = context.GameUsers.Any(gu => gu.GameId == gameId && gu.UserId == user.UserId);
                 if (alreadyJoined)
                 {
-                    return BadRequest("You are already registered for this game. You can view it in 'My Games'.");
+                    return BadRequest(new { Error = "You are already registered for this game. You can view it in 'My Games'." });
                 }
-        
+
                 // בדיקה אם המשחק מלא
                 if (HasGameReachedCapacity(gameId))
                 {
-                    return BadRequest("This game has reached its maximum player capacity.");
+                    return BadRequest(new { Error = "This game has reached its maximum player capacity." });
                 }
-        
+
                 // בחירת תפקיד זמין
                 var availableRoles = GetAvailableRoles(gameId, game.GameType.Value);
                 if (!availableRoles.Any())
                 {
-                    return BadRequest("All positions for this game have been filled.");
+                    return BadRequest(new { Error = "All positions for this game have been filled." });
                 }
-        
+
                 var availableRole = availableRoles.OrderBy(r => Guid.NewGuid()).FirstOrDefault();
-                
+
                 var gameUser = new GameUser
                 {
                     GameId = game.GameId,
                     UserId = user.UserId,
                     RoleId = availableRole.RoleId
                 };
-        
+
                 context.GameUsers.Add(gameUser);
                 context.SaveChanges();
-        
+
                 return Ok(new { Message = "Successfully joined the game!", RoleAssigned = availableRole.Name });
             }
             catch (Exception ex)
@@ -757,6 +757,19 @@ namespace SportBuddiesServer.Controllers
                 if (user == null)
                 {
                     return Unauthorized("User not found");
+                }
+
+                // Get the game details to check if the user is the creator
+                var game = context.GameDetails.SingleOrDefault(g => g.GameId == gameId);
+                if (game == null)
+                {
+                    return NotFound("Game not found");
+                }
+
+                // Check if the user is the creator of the game
+                if (game.CreatorId == user.UserId)
+                {
+                    return BadRequest(new { Error = "Game creators cannot leave their own games." });
                 }
 
                 var gameUser = context.GameUsers
