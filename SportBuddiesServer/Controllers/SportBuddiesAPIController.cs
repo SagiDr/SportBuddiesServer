@@ -527,6 +527,54 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
+
+        [HttpPost("UpdateGameScoreAndNotes")]
+        public IActionResult UpdateGameScoreAndNotes([FromBody] DTO.GameDetails gameDetailsDTO)
+        {
+            try
+            {
+                // Check if who is logged in
+                string? userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User is not logged in");
+                }
+
+                // Get model user class from DB with matching email
+                Models.User? user = context.GetUser(userEmail);
+
+                // Clear the tracking of all objects to avoid double tracking
+                context.ChangeTracker.Clear();
+
+                // Check if the user is the creator of the game
+                var game = context.GameDetails.FirstOrDefault(g => g.GameId == gameDetailsDTO.GameId);
+                if (game == null)
+                {
+                    return NotFound($"Game with ID {gameDetailsDTO.GameId} not found");
+                }
+
+                // Verify that the current user is the creator of the game
+                if (user == null || game.CreatorId != user.UserId)
+                {
+                    return Unauthorized("Only the creator of the game can update scores and notes");
+                }
+
+                // Update score and notes
+                game.Score = gameDetailsDTO.Score;
+                game.Notes = gameDetailsDTO.Notes;
+
+                // Save changes to the database
+                context.Entry(game).State = EntityState.Modified;
+                context.SaveChanges();
+
+                return Ok(new DTO.GameDetails(game));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         // New endpoint to get game capacity information
         [HttpGet("games/{gameId}/capacity")]
         public IActionResult GetGameCapacity(int gameId)

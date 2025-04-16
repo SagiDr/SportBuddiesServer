@@ -181,7 +181,7 @@ SELECT * FROM [GameDetails];
 SELECT * FROM [User];
 SELECT * FROM [GameType];
 SELECT * FROM [GameUsers];
-select * from GameRoles
+select * from [GameRoles];
 
 
 -- scaffold-DbContext "Server = (localdb)\MSSQLLocalDB;Initial Catalog=SportBuddiesDB;User ID=SportBuddiesAdminLogin;Password=thePassword;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir Models -Context SportBuddiesDbContext -DataAnnotations –force
