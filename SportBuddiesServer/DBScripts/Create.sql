@@ -108,6 +108,11 @@ INSERT INTO [User] (Name, Email, Password, Gender, IsAdmin, ProfileImageExtentio
 VALUES ('sagi', 'sagi@sagi.com', '12', 'Male', 'NO', NULL, 2);
 GO
 
+INSERT INTO [User] (Name, Email, Password, Gender, IsAdmin, ProfileImageExtention, FavoriteSport)
+VALUES ('ofer', 'ofer@ofer.com', '12', 'Male', 'NO', NULL, 3);
+GO
+
+
 
 -- הוספת 3 משחקי דמה
 INSERT INTO [GameDetails] 
