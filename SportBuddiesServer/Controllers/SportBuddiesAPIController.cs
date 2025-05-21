@@ -445,7 +445,7 @@ namespace SportBuddiesServer.Controllers
             {
                 return BadRequest(new { Error = ex.Message });
             }
-        }
+        }   
 
 
         [HttpGet("privateGame")]
@@ -1138,7 +1138,87 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
+        [HttpPost("games/{gameId}/banPlayer")]
+        public IActionResult BanPlayer(int gameId, int playerId)
+        {
+            try
+            {
+                Console.WriteLine($"DEBUG SERVER: BanPlayer called with gameId: {gameId}, playerId: {playerId}");
 
+                // Check if who is logged in
+                string? userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    Console.WriteLine("DEBUG SERVER: User is not logged in");
+                    return Unauthorized("User is not logged in");
+                }
+
+                // Get model user class from DB with matching email
+                Models.User? user = context.GetUser(userEmail);
+                if (user == null)
+                {
+                    Console.WriteLine("DEBUG SERVER: User not found in database");
+                    return Unauthorized("User not found");
+                }
+
+                Console.WriteLine($"DEBUG SERVER: Current user: {user.Name} (ID: {user.UserId}), IsAdmin: {user.IsAdmin}");
+
+                // Get the game details
+                var game = context.GameDetails.FirstOrDefault(g => g.GameId == gameId);
+                if (game == null)
+                {
+                    Console.WriteLine($"DEBUG SERVER: Game {gameId} not found");
+                    return NotFound("Game not found");
+                }
+
+                Console.WriteLine($"DEBUG SERVER: Game found: {game.GameName}, Creator ID: {game.CreatorId}");
+
+                // Check if the user is the creator of the game or an admin
+                bool isCreator = game.CreatorId == user.UserId;
+                bool isAdmin = user.IsAdmin == "YES";
+
+                Console.WriteLine($"DEBUG SERVER: IsCreator: {isCreator}, IsAdmin: {isAdmin}");
+
+                if (!isCreator && !isAdmin)
+                {
+                    Console.WriteLine("DEBUG SERVER: User has no permission to ban players");
+                    return Unauthorized("Only game creators or admins can ban players from a game");
+                }
+
+                // Check if the player to ban exists and is actually in the game
+                var playerToRemove = context.GameUsers
+                    .FirstOrDefault(gu => gu.GameId == gameId && gu.UserId == playerId);
+
+                if (playerToRemove == null)
+                {
+                    Console.WriteLine($"DEBUG SERVER: Player {playerId} not found in game {gameId}");
+                    return NotFound("Player not found in this game");
+                }
+
+                Console.WriteLine($"DEBUG SERVER: Player to remove found: UserID {playerToRemove.UserId}, RoleID {playerToRemove.RoleId}");
+
+                // Creator can't ban themselves
+                if (playerId == game.CreatorId)
+                {
+                    Console.WriteLine("DEBUG SERVER: Attempting to ban game creator");
+                    return BadRequest(new { Error = "Game creator cannot be banned from their own game" });
+                }
+
+                // Remove the player from the game
+                context.GameUsers.Remove(playerToRemove);
+                int saveResult = context.SaveChanges();
+
+                Console.WriteLine($"DEBUG SERVER: Save changes result: {saveResult} rows affected");
+
+                return Ok(new { Message = "Player has been removed from the game" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DEBUG SERVER: Exception: {ex.Message}");
+                Console.WriteLine($"DEBUG SERVER: Stack trace: {ex.StackTrace}");
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
 
         //Helper functions
 
