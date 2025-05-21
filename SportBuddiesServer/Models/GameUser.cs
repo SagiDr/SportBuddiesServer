@@ -18,6 +18,10 @@ public partial class GameUser
     [Key]
     public int UserId { get; set; }
 
+    [Required]
+    [StringLength(1)]
+    public string Team { get; set; } = "A";
+
     [ForeignKey("GameId")]
     [InverseProperty("GameUsers")]
     public virtual GameDetail Game { get; set; } = null!;

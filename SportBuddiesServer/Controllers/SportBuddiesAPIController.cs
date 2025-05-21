@@ -34,13 +34,13 @@ namespace SportBuddiesServer.Controllers
             switch (game.GameType)
             {
                 case 1: // Basketball
-                    maxPlayers = 5;
+                    maxPlayers = 10; // Changed to 10 - 5 players per team
                     break;
                 case 2: // Soccer
-                    maxPlayers = 11; // Changed to 11 - standard soccer team size
+                    maxPlayers = 22; // Changed to 22 - 11 players per team
                     break;
                 case 3: // Volleyball
-                    maxPlayers = 6; // Changed to 6 - standard volleyball team size
+                    maxPlayers = 12; // Changed to 12 - 6 players per team
                     break;
                 default:
                     maxPlayers = 10; // Default maximum
@@ -50,6 +50,7 @@ namespace SportBuddiesServer.Controllers
             // Check if current player count has reached the maximum
             return currentPlayerCount >= maxPlayers;
         }
+
 
         // New method to get available roles for a game
         private List<GameRole> GetAvailableRoles(int gameId, int gameTypeId)
@@ -352,7 +353,7 @@ namespace SportBuddiesServer.Controllers
 
 
         [HttpPost("joinPrivateGame")]
-        public IActionResult JoinPrivateGame(int gameId, string invitationCode)
+        public IActionResult JoinPrivateGame(int gameId, string invitationCode, string team = "A")
         {
             try
             {
@@ -374,26 +375,51 @@ namespace SportBuddiesServer.Controllers
                     return NotFound("Game not found");
                 }
 
-                // בדיקה האם המשחק פרטי וקוד ההזמנה תואם
+                // Check if the game is private and the invitation code matches
                 if (game.State == "Private" && game.Link != invitationCode)
                 {
                     return BadRequest(new { Error = "Invalid invitation code. Please ask the game creator for the correct code." });
                 }
 
-                // בדיקה אם המשתמש כבר רשום למשחק
+                // Check if user is already registered for this game
                 bool alreadyJoined = context.GameUsers.Any(gu => gu.GameId == gameId && gu.UserId == user.UserId);
                 if (alreadyJoined)
                 {
                     return BadRequest(new { Error = "You are already registered for this game. You can view it in 'My Games'." });
                 }
 
-                // בדיקה אם המשחק מלא
-                if (HasGameReachedCapacity(gameId))
+                // Validate team choice
+                if (team != "A" && team != "B")
                 {
-                    return BadRequest(new { Error = "This game has reached its maximum player capacity." });
+                    team = "A"; // Default to team A if invalid team specified
                 }
 
-                // בחירת תפקיד זמין
+                // Check if the selected team is full
+                int teamSize = context.GameUsers.Count(gu => gu.GameId == gameId && gu.Team == team);
+                int maxTeamSize;
+
+                switch (game.GameType)
+                {
+                    case 1: // Basketball
+                        maxTeamSize = 5;
+                        break;
+                    case 2: // Soccer
+                        maxTeamSize = 11;
+                        break;
+                    case 3: // Volleyball
+                        maxTeamSize = 6;
+                        break;
+                    default:
+                        maxTeamSize = 5;
+                        break;
+                }
+
+                if (teamSize >= maxTeamSize)
+                {
+                    return BadRequest(new { Error = $"Team {team} is already full. Please try joining the other team." });
+                }
+
+                // Get available roles
                 var availableRoles = GetAvailableRoles(gameId, game.GameType.Value);
                 if (!availableRoles.Any())
                 {
@@ -406,13 +432,14 @@ namespace SportBuddiesServer.Controllers
                 {
                     GameId = game.GameId,
                     UserId = user.UserId,
-                    RoleId = availableRole.RoleId
+                    RoleId = availableRole.RoleId,
+                    Team = team
                 };
 
                 context.GameUsers.Add(gameUser);
                 context.SaveChanges();
 
-                return Ok(new { Message = "Successfully joined the game!", RoleAssigned = availableRole.Name });
+                return Ok(new { Message = $"Successfully joined the game on Team {team}!", RoleAssigned = availableRole.Name });
             }
             catch (Exception ex)
             {
@@ -465,7 +492,7 @@ namespace SportBuddiesServer.Controllers
         }
 
         [HttpPost("joinGame")]
-        public IActionResult JoinGame(int gameId)
+        public IActionResult JoinGame(int gameId, string team = "A")
         {
             try
             {
@@ -487,20 +514,45 @@ namespace SportBuddiesServer.Controllers
                     return NotFound("Game not found");
                 }
 
-                // בדיקה אם המשתמש כבר רשום למשחק
+                // Check if user is already registered for this game
                 bool alreadyJoined = context.GameUsers.Any(gu => gu.GameId == gameId && gu.UserId == user.UserId);
                 if (alreadyJoined)
                 {
-                    return BadRequest(new { Error = "You are already registered for this game. You can view it in 'My Games'." });
+                    return BadRequest(new { Error = "You are already registered for this game." });
                 }
 
-                // בדיקה אם המשחק מלא
-                if (HasGameReachedCapacity(gameId))
+                // Validate team choice
+                if (team != "A" && team != "B")
                 {
-                    return BadRequest(new { Error = "This game has reached its maximum player capacity." });
+                    team = "A"; // Default to team A if invalid team specified
                 }
 
-                // בחירת תפקיד זמין
+                // Check if the selected team is full
+                int teamSize = context.GameUsers.Count(gu => gu.GameId == gameId && gu.Team == team);
+                int maxTeamSize;
+
+                switch (game.GameType)
+                {
+                    case 1: // Basketball
+                        maxTeamSize = 5;
+                        break;
+                    case 2: // Soccer
+                        maxTeamSize = 11;
+                        break;
+                    case 3: // Volleyball
+                        maxTeamSize = 6;
+                        break;
+                    default:
+                        maxTeamSize = 5;
+                        break;
+                }
+
+                if (teamSize >= maxTeamSize)
+                {
+                    return BadRequest(new { Error = $"Team {team} is already full. Please try joining the other team." });
+                }
+
+                // Get available roles
                 var availableRoles = GetAvailableRoles(gameId, game.GameType.Value);
                 if (!availableRoles.Any())
                 {
@@ -513,13 +565,14 @@ namespace SportBuddiesServer.Controllers
                 {
                     GameId = game.GameId,
                     UserId = user.UserId,
-                    RoleId = availableRole.RoleId
+                    RoleId = availableRole.RoleId,
+                    Team = team
                 };
 
                 context.GameUsers.Add(gameUser);
                 context.SaveChanges();
 
-                return Ok(new { Message = "Successfully joined the game!", RoleAssigned = availableRole.Name });
+                return Ok(new { Message = $"Successfully joined the game on Team {team}!", RoleAssigned = availableRole.Name });
             }
             catch (Exception ex)
             {
@@ -1032,6 +1085,59 @@ namespace SportBuddiesServer.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+
+        [HttpGet("games/{gameId}/teams")]
+        public IActionResult GetTeamCounts(int gameId)
+        {
+            try
+            {
+                var game = context.GameDetails.FirstOrDefault(g => g.GameId == gameId);
+                if (game == null)
+                    return NotFound($"Game with ID {gameId} not found.");
+
+                // Count players in each team
+                var teamCounts = context.GameUsers
+                    .Where(gu => gu.GameId == gameId)
+                    .GroupBy(gu => gu.Team)
+                    .Select(g => new { Team = g.Key, Count = g.Count() })
+                    .ToDictionary(x => x.Team, x => x.Count);
+
+                // Ensure both teams are in the dictionary
+                if (!teamCounts.ContainsKey("A"))
+                    teamCounts["A"] = 0;
+                if (!teamCounts.ContainsKey("B"))
+                    teamCounts["B"] = 0;
+
+                // Get maximum players per team based on game type
+                int maxPlayersPerTeam;
+                switch (game.GameType)
+                {
+                    case 1: // Basketball
+                        maxPlayersPerTeam = 5;
+                        break;
+                    case 2: // Soccer
+                        maxPlayersPerTeam = 11;
+                        break;
+                    case 3: // Volleyball
+                        maxPlayersPerTeam = 6;
+                        break;
+                    default:
+                        maxPlayersPerTeam = 5;
+                        break;
+                }
+
+                // Add max players information
+                teamCounts["MaxPerTeam"] = maxPlayersPerTeam;
+
+                return Ok(teamCounts);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
 
 
         //Helper functions

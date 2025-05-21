@@ -81,11 +81,12 @@ CREATE TABLE [GameRoles] (
     FOREIGN KEY (GameTypeID) REFERENCES GameType(IdType)
 );
 
--- Create GameUsers table
+-- Create GameUsers table WITH THE TEAM COLUMN ALREADY INCLUDED
 CREATE TABLE [GameUsers] (
     GameId INT,
     RoleId INT,
     UserId INT,
+    Team CHAR(1) NOT NULL DEFAULT 'A',  -- הוספת עמודת Team מלכתחילה
     PRIMARY KEY (GameId, RoleId, UserId),
     FOREIGN KEY (GameId) REFERENCES [GameDetails](GameID),
     FOREIGN KEY (RoleId) REFERENCES GameRoles(RoleID),
@@ -111,8 +112,6 @@ GO
 INSERT INTO [User] (Name, Email, Password, Gender, IsAdmin, ProfileImageExtention, FavoriteSport)
 VALUES ('ofer', 'ofer@ofer.com', '12', 'Male', 'NO', NULL, 3);
 GO
-
-
 
 -- הוספת 3 משחקי דמה
 INSERT INTO [GameDetails] 
@@ -158,9 +157,6 @@ VALUES
     (3, 'Libero', 5, 1);
 GO
 
-
-
-
 -- Check if the login already exists before creating it
 IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'SportBuddiesAdminLogin')
 BEGIN
@@ -182,11 +178,30 @@ GO
 ALTER ROLE db_owner ADD MEMBER [SportBuddiesAdminUser];
 GO
 
+-- Create a stored procedure to get team counts for a game
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'GetTeamCounts')
+BEGIN
+    DROP PROCEDURE GetTeamCounts;
+END
+GO
+
+CREATE PROCEDURE GetTeamCounts
+    @GameId INT
+AS
+BEGIN
+    SELECT 
+        Team,
+        COUNT(*) as PlayerCount
+    FROM GameUsers
+    WHERE GameId = @GameId
+    GROUP BY Team;
+END
+GO
+
 SELECT * FROM [GameDetails];
 SELECT * FROM [User];
 SELECT * FROM [GameType];
 SELECT * FROM [GameUsers];
 select * from [GameRoles];
-
 
 -- scaffold-DbContext "Server = (localdb)\MSSQLLocalDB;Initial Catalog=SportBuddiesDB;User ID=SportBuddiesAdminLogin;Password=thePassword;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir Models -Context SportBuddiesDbContext -DataAnnotations –force
