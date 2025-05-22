@@ -157,6 +157,8 @@ VALUES
     (3, 'Libero', 5, 1);
 GO
 
+
+
 -- Check if the login already exists before creating it
 IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'SportBuddiesAdminLogin')
 BEGIN
@@ -197,6 +199,52 @@ BEGIN
     GROUP BY Team;
 END
 GO
+
+CREATE TABLE [GameChat] (
+    ChatID INT PRIMARY KEY IDENTITY(1,1),
+    GameID INT NOT NULL,
+    ChatName NVARCHAR(255),
+    CreatedDate DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (GameID) REFERENCES [GameDetails](GameID)
+);
+
+-- Create ChatMessages table for individual messages
+CREATE TABLE [ChatMessages] (
+    MessageID INT PRIMARY KEY IDENTITY(1,1),
+    ChatID INT NOT NULL,
+    SenderID INT NOT NULL,
+    MessageContent NTEXT NOT NULL,
+    SentAt DATETIME DEFAULT GETDATE(),
+    IsRead BIT DEFAULT 0,
+    FOREIGN KEY (ChatID) REFERENCES [GameChat](ChatID),
+    FOREIGN KEY (SenderID) REFERENCES [User](UserID)
+);
+
+-- Create chat for existing games
+INSERT INTO [GameChat] (GameID, ChatName)
+SELECT GameID, CONCAT(GameName, ' Chat')
+FROM [GameDetails]
+WHERE GameID NOT IN (SELECT GameID FROM [GameChat]);
+
+-- Add index for better performance
+CREATE INDEX IX_ChatMessages_ChatID_SentAt ON [ChatMessages](ChatID, SentAt);
+CREATE INDEX IX_ChatMessages_SenderID ON [ChatMessages](SenderID);
+GO
+
+-- Create trigger to automatically create a chat when a game is created
+CREATE TRIGGER tr_CreateGameChat
+ON [GameDetails]
+AFTER INSERT
+AS
+BEGIN
+    INSERT INTO [GameChat] (GameID, ChatName)
+    SELECT GameID, CONCAT(GameName, ' Chat')
+    FROM inserted;
+END
+GO
+
+
+SELECT * FROM [ChatMessages];
 
 SELECT * FROM [GameDetails];
 SELECT * FROM [User];

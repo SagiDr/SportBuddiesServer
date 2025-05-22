@@ -3,17 +3,20 @@ using Microsoft.AspNetCore.Mvc;
 using SportBuddiesServer.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+
 namespace SportBuddiesServer.Controllers
 {
     [Route("api")]
     [ApiController]
     public class SportBuddiesAPIController : ControllerBase
     {
-        //a variable to hold a reference to the db context!
+        // A variable to hold a reference to the db context
         private SportBuddiesDbContext context;
-        //a variable that hold a reference to web hosting interface (that provide information like the folder on which the server runs etc...)
+        // A variable that hold a reference to web hosting interface (that provide information like the folder on which the server runs etc...)
         private IWebHostEnvironment webHostEnvironment;
-        //Use dependency injection to get the db context and web host into the constructor
+
+        // Use dependency injection to get the db context and web host into the constructor
         public SportBuddiesAPIController(SportBuddiesDbContext context, IWebHostEnvironment env)
         {
             this.context = context;
@@ -51,7 +54,6 @@ namespace SportBuddiesServer.Controllers
             return currentPlayerCount >= maxPlayers;
         }
 
-
         // New method to get available roles for a game
         private List<GameRole> GetAvailableRoles(int gameId, int gameTypeId)
         {
@@ -68,25 +70,23 @@ namespace SportBuddiesServer.Controllers
             return allRoles.Where(r => !assignedRoleIds.Contains(r.RoleId)).ToList();
         }
 
-
-
         [HttpPost("login")]
         public IActionResult Login([FromBody] DTO.LoginInfo loginDto)
         {
             try
             {
-                HttpContext.Session.Clear(); //Logout any previous login attempt
+                HttpContext.Session.Clear(); // Logout any previous login attempt
 
-                //Get model user class from DB with matching email. 
+                // Get model user class from DB with matching email
                 Models.User? modelsUser = context.GetUser(loginDto.Email);
 
-                //Check if user exist for this email and if password match, if not return Access Denied (Error 403) 
+                // Check if user exist for this email and if password match, if not return Access Denied (Error 403)
                 if (modelsUser == null || modelsUser.Password != loginDto.Password)
                 {
                     return Unauthorized();
                 }
 
-                //Login suceed! now mark login in session memory!
+                // Login succeed! now mark login in session memory
                 HttpContext.Session.SetString("loggedInUser", modelsUser.Email);
 
                 DTO.User dtoUser = new DTO.User(modelsUser);
@@ -97,7 +97,6 @@ namespace SportBuddiesServer.Controllers
             {
                 return BadRequest(ex.Message);
             }
-
         }
 
         [HttpPost("register")]
@@ -105,9 +104,9 @@ namespace SportBuddiesServer.Controllers
         {
             try
             {
-                HttpContext.Session.Clear(); //Logout any previous login attempt
+                HttpContext.Session.Clear(); // Logout any previous login attempt
 
-                //Create model user class
+                // Create model user class
                 Models.User modelsUser = userDto.GetModels();
 
                 // Set default profile image path if not provided
@@ -119,7 +118,7 @@ namespace SportBuddiesServer.Controllers
                 context.Users.Add(modelsUser);
                 context.SaveChanges();
 
-                //User was added!
+                // User was added!
                 DTO.User dtoUser = new DTO.User(modelsUser);
                 dtoUser.ProfileImageExtention = GetProfileImageVirtualPath(dtoUser.UserId);
                 return Ok(dtoUser);
@@ -135,67 +134,64 @@ namespace SportBuddiesServer.Controllers
         {
             try
             {
-                //Check if who is logged in
+                // Check if who is logged in
                 string? userEmail = HttpContext.Session.GetString("loggedInUser");
                 if (string.IsNullOrEmpty(userEmail))
                 {
                     return Unauthorized("User is not logged in");
                 }
 
-                //Get model user class from DB with matching email. 
+                // Get model user class from DB with matching email
                 Models.User? user = context.GetUser(userEmail);
-                //Clear the tracking of all objects to avoid double tracking
+                // Clear the tracking of all objects to avoid double tracking
                 context.ChangeTracker.Clear();
 
-                //Check if the user that is logged in is the same user of the task
-                //this situation is ok only if the user is a manager
+                // Check if the user that is logged in is the same user of the task
+                // this situation is ok only if the user is a manager
                 if (user == null || (userDto.UserId != user.UserId))
                 {
                     return Unauthorized("Non Manager User is trying to update a different user");
                 }
 
                 Models.User appUser = userDto.GetModels();
-
                 context.Entry(appUser).State = EntityState.Modified;
-
                 context.SaveChanges();
 
-                //Task was updated!
+                // Task was updated!
                 return Ok();
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-
         }
-
-
 
         [HttpPost("UploadProfileImage")]
         public async Task<IActionResult> UploadProfileImageAsync(IFormFile file)
         {
-            //Check if who is logged in
+            // Check if who is logged in
             string? userEmail = HttpContext.Session.GetString("loggedInUser");
             if (string.IsNullOrEmpty(userEmail))
             {
                 return Unauthorized("User is not logged in");
             }
-            //Get model user class from DB with matching email. 
+
+            // Get model user class from DB with matching email
             Models.User? user = context.GetUser(userEmail);
-            //Clear the tracking of all objects to avoid double tracking
+            // Clear the tracking of all objects to avoid double tracking
             context.ChangeTracker.Clear();
 
             if (user == null)
             {
                 return Unauthorized("User is not found in the database");
             }
-            //Read all files sent
+
+            // Read all files sent
             long imagesSize = 0;
 
             if (file.Length > 0)
             {
-                //Check the file extention!
+                // Check the file extension!
                 string[] allowedExtentions = { ".png", ".jpg" };
                 string extention = "";
                 if (file.FileName.LastIndexOf(".") > 0)
@@ -205,11 +201,11 @@ namespace SportBuddiesServer.Controllers
                 }
                 if (!allowedExtentions.Where(e => e == extention).Any())
                 {
-                    //Extention is not supported
-                    return BadRequest("File sent with non supported extention");
+                    // Extension is not supported
+                    return BadRequest("File sent with non supported extension");
                 }
 
-                //Build path in the web root (better to a specific folder under the web root
+                // Build path in the web root (better to a specific folder under the web root
                 string filePath = $"{this.webHostEnvironment.WebRootPath}\\profileImages\\{user.UserId}{extention}";
 
                 using (var stream = System.IO.File.Create(filePath))
@@ -222,14 +218,16 @@ namespace SportBuddiesServer.Controllers
                     }
                     else
                     {
-                        //Delete the file if it is not supported!
+                        // Delete the file if it is not supported!
                         System.IO.File.Delete(filePath);
                     }
                 }
             }
-            //Update image extention in DB
+
+            // Update image extension in DB
             context.Entry(user).State = EntityState.Modified;
             context.SaveChanges();
+
             DTO.User dtoUser = new DTO.User(user);
             dtoUser.ProfileImageExtention = GetProfileImageVirtualPath(dtoUser.UserId);
             return Ok(dtoUser);
@@ -243,7 +241,7 @@ namespace SportBuddiesServer.Controllers
                 // Create model user class
                 Models.GameDetail modelsgameDetails = gameDetailsDTO.GetModels();
 
-                // אם המשחק מוגדר כפרטי, צור קוד הזמנה אקראי
+                // If the game is defined as private, create a random invitation code
                 if (modelsgameDetails.State == "Private")
                 {
                     modelsgameDetails.Link = GenerateRandomInvitationCode();
@@ -262,7 +260,7 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
-        // מתודה עזר ליצירת קוד הזמנה אקראי
+        // Helper method for creating random invitation code
         private string GenerateRandomInvitationCode()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -270,20 +268,6 @@ namespace SportBuddiesServer.Controllers
             return new string(Enumerable.Repeat(chars, 6)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
-
-     
-
-        //// מתודה עזר לחילוץ קוד הזמנה מהשדה Link
-        //private string ExtractInvitationCode(string link)
-        //{
-        //    if (string.IsNullOrEmpty(link) || !link.Contains("#INVITE:"))
-        //        return null;
-
-        //    int inviteIndex = link.IndexOf("#INVITE:");
-        //    return link.Substring(inviteIndex + 8); // 8 הוא האורך של "#INVITE:"
-        //}
-
-
 
         [HttpGet("games/{gameId}/players")]
         public IActionResult GetPlayersByGameId(int gameId)
@@ -303,7 +287,7 @@ namespace SportBuddiesServer.Controllers
                     .Join(context.GameRoles,
                           gu => gu.RoleId,
                           r => r.RoleId,
-                          (gu, r) => new { gu.User, Role = r }) // ⬅️ שומר את כל האובייקט של Role
+                          (gu, r) => new { gu.User, Role = r }) // Keeps the entire Role object
                     .ToList();
 
                 var players = rawPlayers.Select(p =>
@@ -312,10 +296,9 @@ namespace SportBuddiesServer.Controllers
                     dto.RoleName = p.Role.Name;
                     dto.ProfileImageExtention = GetProfileImageVirtualPath(dto.UserId);
 
-                    // ⬇️ הוספה של מיקום מהתפקיד
+                    // Addition of position from role
                     dto.PositionX = p.Role.PositionX;
                     dto.PositionY = p.Role.PositionY;
-                    
 
                     return dto;
                 }).ToList();
@@ -328,16 +311,12 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
-
-
-
-
         [HttpGet("games")]
         public IActionResult GetGames()
         {
             try
             {
-                // מחזיר את כל המשחקים (ציבוריים ופרטיים)
+                // Returns all games (public and private)
                 var games = context.GameDetails
                     .Include(g => g.Creator)
                     .ToList();
@@ -350,7 +329,6 @@ namespace SportBuddiesServer.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
 
         [HttpPost("joinPrivateGame")]
         public IActionResult JoinPrivateGame(int gameId, string invitationCode, string team = "A")
@@ -445,15 +423,14 @@ namespace SportBuddiesServer.Controllers
             {
                 return BadRequest(new { Error = ex.Message });
             }
-        }   
-
+        }
 
         [HttpGet("privateGame")]
         public IActionResult GetPrivateGame(string invitationCode)
         {
             try
             {
-                // חיפוש המשחק לפי קוד ההזמנה
+                // Search for the game by invitation code
                 var game = context.GameDetails
                     .Include(g => g.Creator)
                     .FirstOrDefault(g => g.State == "Private" && g.Link == invitationCode);
@@ -482,7 +459,7 @@ namespace SportBuddiesServer.Controllers
                 {
                     return BadRequest($"No Such Game ID: {gameId}");
                 }
-                DTO.GameDetails dtoGameDetails = new DTO.GameDetails(g); 
+                DTO.GameDetails dtoGameDetails = new DTO.GameDetails(g);
                 return Ok(dtoGameDetails);
             }
             catch (Exception ex)
@@ -580,7 +557,6 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
-
         [HttpPost("UpdateGameScoreAndNotes")]
         public IActionResult UpdateGameScoreAndNotes([FromBody] DTO.GameDetails gameDetailsDTO)
         {
@@ -675,16 +651,12 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
-
-
         [HttpGet("GetUserByEmail")]
         public IActionResult GetUserByEmail([FromQuery] string email)
         {
             try
             {
-
-                //Read user by email
-
+                // Read user by email
                 Models.User u = context.GetUser(email);
                 DTO.User user = new DTO.User(u);
                 return Ok(user);
@@ -693,57 +665,50 @@ namespace SportBuddiesServer.Controllers
             {
                 return BadRequest(ex.Message);
             }
-
         }
+
         [HttpGet("GetAllEmails")]
         public IActionResult GetAllEmails()
         {
             try
             {
-                //Read all emails of every user in the app
-
+                // Read all emails of every user in the app
                 List<string> list = context.GetAllEmails();
-
                 return Ok(list);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-
         }
-        
+
         [HttpPost("UpdateUserPassword")]
         public IActionResult UpdateUserPassword([FromBody] DTO.User userDto)
         {
             try
             {
-                //Get model user class from DB with matching email. 
+                // Get model user class from DB with matching email
                 Models.User? theUser = context.GetUser(userDto.Email);
-                //Clear the tracking of all objects to avoid double tracking
+                // Clear the tracking of all objects to avoid double tracking
                 context.ChangeTracker.Clear();
 
-                //Check if the user that is logged in is the same user of the task
-
+                // Check if the user that is logged in is the same user of the task
                 if (theUser == null || (userDto.UserId != theUser.UserId))
                 {
                     return Unauthorized("Failed to update user");
                 }
 
                 Models.User appUser = userDto.GetModels();
-
                 context.Entry(appUser).State = EntityState.Modified;
-
                 context.SaveChanges();
 
-                //Task was updated!
+                // Task was updated!
                 return Ok();
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-
         }
 
         [HttpGet("gameTypes")]
@@ -765,37 +730,36 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
-
         [HttpGet("myGames")]
         public IActionResult GetMyGames()
         {
             try
             {
-                // בדיקה אם המשתמש מחובר
+                // Check if the user is logged in
                 var userEmail = HttpContext.Session.GetString("loggedInUser");
                 if (string.IsNullOrEmpty(userEmail))
                 {
                     return Unauthorized("User is not logged in");
                 }
 
-                // הבאת המשתמש מה־DB לפי האימייל
+                // Get the user from the DB by email
                 var user = context.Users.FirstOrDefault(u => u.Email == userEmail);
                 if (user == null)
                 {
                     return NotFound("User not found");
                 }
 
-                // נארגן את התוצאה בשני אוספים נפרדים
+                // Organize the result in two separate collections
                 var result = new
                 {
-                    // משחקים שהמשתמש יצר
+                    // Games that the user created
                     CreatedGames = context.GameDetails
                         .Include(g => g.Creator)
                         .Where(g => g.CreatorId == user.UserId)
                         .Select(g => new DTO.GameDetails(g))
                         .ToList(),
 
-                    // משחקים שהמשתמש הצטרף אליהם (אבל לא יצר)
+                    // Games that the user joined (but didn't create)
                     JoinedGames = context.GameUsers
                         .Include(gu => gu.Game)
                             .ThenInclude(g => g.Creator)
@@ -812,15 +776,13 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
-
-
         [HttpDelete("games/{id}")]
         public IActionResult DeleteGame(int id)
         {
             try
             {
                 var game = context.GameDetails
-                    .Include(g => g.GameUsers) // אם יש קשרים כאלה
+                    .Include(g => g.GameUsers) // If there are such relationships
                     .FirstOrDefault(g => g.GameId == id);
 
                 if (game == null)
@@ -828,7 +790,7 @@ namespace SportBuddiesServer.Controllers
                     return NotFound($"No game found with ID: {id}");
                 }
 
-                // אם יש GameUsers – תמחק גם אותם
+                // If there are GameUsers - delete them too
                 var gameUsers = context.GameUsers.Where(gu => gu.GameId == id).ToList();
                 context.GameUsers.RemoveRange(gameUsers);
 
@@ -913,7 +875,6 @@ namespace SportBuddiesServer.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
 
         [HttpPost("games/{gameId}/photos")]
         public async Task<IActionResult> UploadGamePhotoAsync(int gameId, IFormFile file, [FromForm] string description)
@@ -1086,7 +1047,6 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
-
         [HttpGet("games/{gameId}/teams")]
         public IActionResult GetTeamCounts(int gameId)
         {
@@ -1220,9 +1180,261 @@ namespace SportBuddiesServer.Controllers
             }
         }
 
-        //Helper functions
+        // Get all chats for the current user (only for games they participate in)
+        [HttpGet("mychats")]
+        public IActionResult GetMyChats()
+        {
+            try
+            {
+                var userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User is not logged in");
+                }
 
-        //this function gets a file stream and check if it is an image
+                var user = context.Users.FirstOrDefault(u => u.Email == userEmail);
+                if (user == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                // Get games where user participates (either created or joined)
+                var userGameIds = context.GameUsers
+                    .Where(gu => gu.UserId == user.UserId)
+                    .Select(gu => gu.GameId)
+                    .Union(context.GameDetails
+                        .Where(gd => gd.CreatorId == user.UserId)
+                        .Select(gd => gd.GameId))
+                    .ToList();
+
+                // Get chats for these games
+                var chats = context.GameChats
+                    .Include(gc => gc.Game)
+                    .Where(gc => userGameIds.Contains(gc.GameId))
+                    .ToList();
+
+                var dtoChats = new List<DTO.GameChat>();
+
+                foreach (var chat in chats)
+                {
+                    var dtoChat = new DTO.GameChat(chat);
+
+                    // Get last message
+                    var lastMessage = context.ChatMessages
+                        .Where(cm => cm.ChatId == chat.ChatId)
+                        .OrderByDescending(cm => cm.SentAt)
+                        .FirstOrDefault();
+
+                    if (lastMessage != null)
+                    {
+                        dtoChat.LastMessage = lastMessage.MessageContent;
+                        dtoChat.LastMessageTime = lastMessage.SentAt;
+                    }
+
+                    // Get unread count for this user
+                    dtoChat.UnreadCount = context.ChatMessages
+                        .Where(cm => cm.ChatId == chat.ChatId &&
+                                    cm.SenderId != user.UserId &&
+                                    cm.IsRead == false)
+                        .Count();
+
+                    dtoChats.Add(dtoChat);
+                }
+
+                return Ok(dtoChats.OrderByDescending(c => c.LastMessageTime));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // Get messages for a specific chat
+        [HttpGet("chat/{chatId}/messages")]
+        public IActionResult GetChatMessages(int chatId, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+        {
+            try
+            {
+                var userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User is not logged in");
+                }
+
+                var user = context.Users.FirstOrDefault(u => u.Email == userEmail);
+                if (user == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                // Check if user has access to this chat
+                var chat = context.GameChats
+                    .Include(gc => gc.Game)
+                    .FirstOrDefault(gc => gc.ChatId == chatId);
+
+                if (chat == null)
+                {
+                    return NotFound("Chat not found");
+                }
+
+                // Verify user is participant in the game
+                bool hasAccess = context.GameUsers.Any(gu => gu.GameId == chat.GameId && gu.UserId == user.UserId) ||
+                                chat.Game.CreatorId == user.UserId;
+
+                if (!hasAccess)
+                {
+                    return Unauthorized("User does not have access to this chat");
+                }
+
+                // Get messages with pagination
+                var messages = context.ChatMessages
+                 .Include(cm => cm.Sender)
+                 .Where(cm => cm.ChatId == chatId)
+                 .OrderByDescending(cm => cm.SentAt)
+                 .Skip((page - 1) * pageSize)
+                 .Take(pageSize)
+                 .AsEnumerable()   // LINQ → IEnumerable
+                 .Reverse()        // LINQ.Reverse מחזיר IEnumerable
+                 .ToList();
+
+                var dtoMessages = messages.Select(m => new DTO.ChatMessage(m)).ToList();
+
+                // Mark messages as read for current user
+                var unreadMessages = context.ChatMessages
+                    .Where(cm => cm.ChatId == chatId &&
+                                cm.SenderId != user.UserId &&
+                                cm.IsRead == false)
+                    .ToList();
+
+                foreach (var msg in unreadMessages)
+                {
+                    msg.IsRead = true;
+                }
+                context.SaveChanges();
+
+                return Ok(dtoMessages);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // Send a message to a chat
+        [HttpPost("chat/{chatId}/send")]
+        public IActionResult SendMessage(int chatId, [FromBody] DTO.ChatMessage messageDto)
+        {
+            try
+            {
+                var userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User is not logged in");
+                }
+
+                var user = context.Users.FirstOrDefault(u => u.Email == userEmail);
+                if (user == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                // Check if user has access to this chat
+                var chat = context.GameChats
+                    .Include(gc => gc.Game)
+                    .FirstOrDefault(gc => gc.ChatId == chatId);
+
+                if (chat == null)
+                {
+                    return NotFound("Chat not found");
+                }
+
+                // Verify user is participant in the game
+                bool hasAccess = context.GameUsers.Any(gu => gu.GameId == chat.GameId && gu.UserId == user.UserId) ||
+                                chat.Game.CreatorId == user.UserId;
+
+                if (!hasAccess)
+                {
+                    return Unauthorized("User does not have access to this chat");
+                }
+
+                if (string.IsNullOrWhiteSpace(messageDto.MessageContent))
+                {
+                    return BadRequest("Message content cannot be empty");
+                }
+
+                var message = new Models.ChatMessage
+                {
+                    ChatId = chatId,
+                    SenderId = user.UserId,
+                    MessageContent = messageDto.MessageContent.Trim(),
+                    SentAt = DateTime.Now,
+                    IsRead = false
+                };
+
+                context.ChatMessages.Add(message);
+                context.SaveChanges();
+
+                // Return the created message with sender info
+                var createdMessage = context.ChatMessages
+                    .Include(cm => cm.Sender)
+                    .FirstOrDefault(cm => cm.MessageId == message.MessageId);
+
+                return Ok(new DTO.ChatMessage(createdMessage));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // Get chat info by chat ID
+        [HttpGet("chat/{chatId}")]
+        public IActionResult GetChatInfo(int chatId)
+        {
+            try
+            {
+                var userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Unauthorized("User is not logged in");
+                }
+
+                var user = context.Users.FirstOrDefault(u => u.Email == userEmail);
+                if (user == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                var chat = context.GameChats
+                    .Include(gc => gc.Game)
+                    .FirstOrDefault(gc => gc.ChatId == chatId);
+
+                if (chat == null)
+                {
+                    return NotFound("Chat not found");
+                }
+
+                // Verify user is participant in the game
+                bool hasAccess = context.GameUsers.Any(gu => gu.GameId == chat.GameId && gu.UserId == user.UserId) ||
+                                chat.Game.CreatorId == user.UserId;
+
+                if (!hasAccess)
+                {
+                    return Unauthorized("User does not have access to this chat");
+                }
+
+                var dtoChat = new DTO.GameChat(chat);
+                return Ok(dtoChat);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // Helper functions
+
+        // This function gets a file stream and check if it is an image
         private static bool IsImage(Stream stream)
         {
             stream.Seek(0, SeekOrigin.Begin);
@@ -1248,8 +1460,9 @@ namespace SportBuddiesServer.Controllers
             }
             return false;
         }
-        //this function check which profile image exist and return the virtual path of it.
-        //if it does not exist it returns the default profile image virtual path
+
+        // This function check which profile image exist and return the virtual path of it.
+        // If it does not exist it returns the default profile image virtual path
         private string GetProfileImageVirtualPath(int userId)
         {
             string virtualPath = $"/profileImages/{userId}";

@@ -66,4 +66,9 @@ public partial class GameDetail
 
     [InverseProperty("Game")]
     public virtual ICollection<Photo> Photos { get; set; } = new List<Photo>();
+
+    // Add this new property for game chats
+    [InverseProperty("Game")]
+    public virtual ICollection<GameChat> GameChats { get; set; } = new List<GameChat>();
+
 }
