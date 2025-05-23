@@ -50,12 +50,6 @@ public partial class User
     [InverseProperty("User")]
     public virtual ICollection<GameUser> GameUsers { get; set; } = new List<GameUser>();
 
-    [InverseProperty("Receiver")]
-    public virtual ICollection<Message> MessageReceivers { get; set; } = new List<Message>();
-
-    [InverseProperty("Sender")]
-    public virtual ICollection<Message> MessageSenders { get; set; } = new List<Message>();
-
     // Add this new property for chat messages
     [InverseProperty("Sender")]
     public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();

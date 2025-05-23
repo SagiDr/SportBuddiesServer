@@ -21,7 +21,6 @@ public partial class SportBuddiesDbContext : DbContext
     public virtual DbSet<GameRole> GameRoles { get; set; }
     public virtual DbSet<GameType> GameTypes { get; set; }
     public virtual DbSet<GameUser> GameUsers { get; set; }
-    public virtual DbSet<Message> Messages { get; set; }
     public virtual DbSet<Photo> Photos { get; set; }
     public virtual DbSet<User> Users { get; set; }
 
@@ -82,12 +81,6 @@ public partial class SportBuddiesDbContext : DbContext
                 .HasConstraintName("FK__GameUsers__UserI__3A81B327");
         });
 
-        modelBuilder.Entity<Message>(entity =>
-        {
-            entity.HasKey(e => e.MessageId).HasName("PK__Messages__C87C037C5433A063");
-            entity.HasOne(d => d.Receiver).WithMany(p => p.MessageReceivers).HasConstraintName("FK__Messages__Receiv__32E0915F");
-            entity.HasOne(d => d.Sender).WithMany(p => p.MessageSenders).HasConstraintName("FK__Messages__Sender__31EC6D26");
-        });
 
         modelBuilder.Entity<Photo>(entity =>
         {

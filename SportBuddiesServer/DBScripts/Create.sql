@@ -245,7 +245,6 @@ GO
 
 
 SELECT * FROM [ChatMessages];
-
 SELECT * FROM [GameDetails];
 SELECT * FROM [User];
 SELECT * FROM [GameType];
