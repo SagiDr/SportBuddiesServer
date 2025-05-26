@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="SportBuddiesServer.Models.ChatMessage" Collapsed="true">
+    <Position X="4.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAAAAAAAAAEAAAAACBAAgEAAAAAAAIAAQ=</HashCode>
+      <FileName>Models\ChatMessage.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Chat" />
+      <Property Name="Sender" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="SportBuddiesServer.Models.GameChat" Collapsed="true">
+    <Position X="4" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAABAAAAEAAAAAAAgAAAAAAgAAAAAAAAQ=</HashCode>
+      <FileName>Models\GameChat.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Game" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="SportBuddiesServer.Models.GameDetail" Collapsed="true">
+    <Position X="8.25" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAAAAAggGgCAAMAAAEAAAIAAAABEAAgxBAAAQA=</HashCode>
+      <FileName>Models\GameDetail.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Creator" />
+      <Property Name="GameTypeNavigation" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Photos" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="SportBuddiesServer.Models.GameRole" Collapsed="true">
+    <Position X="6" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAIAAAAAgAAgAAAAABUAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\GameRole.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="GameType" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="SportBuddiesServer.Models.GameType" Collapsed="true">
+    <Position X="10.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAACAAAAAABAAAAACAAAwAAACAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\GameType.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SportBuddiesServer.Models.GameUser" Collapsed="true">
+    <Position X="12.75" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAIAAAAAAAAAEAEAAAgAAAgAAAAAEAAAAAAAAAA=</HashCode>
+      <FileName>Models\GameUser.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Game" />
+      <Property Name="Role" />
+      <Property Name="User" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="SportBuddiesServer.Models.Photo" Collapsed="true">
+    <Position X="11" Y="1" Width="1.5" />
+    <AssociationLine Name="Game" Type="SportBuddiesServer.Models.GameDetail">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.803" Y="-0.223" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAgAAAAAAEAAAAAAAgAAAAAAAACAAAAAAA=</HashCode>
+      <FileName>Models\Photo.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Game" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="SportBuddiesServer.Models.SportBuddiesDbContext" Collapsed="true">
+    <Position X="13.25" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAACAAAQAwgDEAAAAAAAEAEACAAAAAEAAAAAAAAAA=</HashCode>
+      <FileName>Models\SportBuddiesDbContext.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SportBuddiesServer.Models.User" Collapsed="true">
+    <Position X="8.5" Y="4.75" Width="1.5" />
+    <AssociationLine Name="FavoriteSportNavigation" Type="SportBuddiesServer.Models.GameType">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-0.633" Y="-0.461" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAghCAAAAgAAwACAGAAAACAAAAAAAAAAA=</HashCode>
+      <FileName>Models\User.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="FavoriteSportNavigation" />
+    </ShowAsAssociation>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
