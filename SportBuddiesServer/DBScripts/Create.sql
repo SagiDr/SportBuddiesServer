@@ -106,8 +106,9 @@ VALUES ('test', 'test@test.com', '12', 'Male', 'YES', NULL, 1);
 GO
 
 INSERT INTO [User] (Name, Email, Password, Gender, IsAdmin, ProfileImageExtention, FavoriteSport)
-VALUES ('sagi', 'sagi@sagi.com', '12', 'Male', 'NO', NULL, 2);
+VALUES ('sagi', 'sagi16121960@gmail.com', '12', 'Male', 'NO', NULL, 2);
 GO
+
 
 INSERT INTO [User] (Name, Email, Password, Gender, IsAdmin, ProfileImageExtention, FavoriteSport)
 VALUES ('ofer', 'ofer@ofer.com', '12', 'Male', 'NO', NULL, 3);
