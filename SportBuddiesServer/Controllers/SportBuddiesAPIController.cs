@@ -781,27 +781,46 @@ namespace SportBuddiesServer.Controllers
         {
             try
             {
-                var game = context.GameDetails
-                    .Include(g => g.GameUsers) // If there are such relationships
-                    .FirstOrDefault(g => g.GameId == id);
-
+                // Find the game first
+                var game = context.GameDetails.FirstOrDefault(g => g.GameId == id);
                 if (game == null)
                 {
                     return NotFound($"No game found with ID: {id}");
                 }
 
-                // If there are GameUsers - delete them too
+                // Delete related records in the correct order (similar to how other methods work)
+
+                // 1. Delete chat messages for this game's chats
+                var gameChats = context.GameChats.Where(gc => gc.GameId == id).ToList();
+                foreach (var chat in gameChats)
+                {
+                    var chatMessages = context.ChatMessages.Where(cm => cm.ChatId == chat.ChatId).ToList();
+                    context.ChatMessages.RemoveRange(chatMessages);
+                }
+
+                // 2. Delete game chats
+                context.GameChats.RemoveRange(gameChats);
+
+                // 3. Delete photos (without trying to delete physical files)
+                var photos = context.Photos.Where(p => p.GameId == id).ToList();
+                context.Photos.RemoveRange(photos);
+
+                // 4. Delete game users (like in LeaveGame method)
                 var gameUsers = context.GameUsers.Where(gu => gu.GameId == id).ToList();
                 context.GameUsers.RemoveRange(gameUsers);
 
+                // 5. Finally delete the game itself
                 context.GameDetails.Remove(game);
+
+                // Save all changes
                 context.SaveChanges();
 
                 return NoContent();
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error deleting game {id}: {ex.Message}");
+                return BadRequest($"Error deleting game: {ex.Message}");
             }
         }
 
