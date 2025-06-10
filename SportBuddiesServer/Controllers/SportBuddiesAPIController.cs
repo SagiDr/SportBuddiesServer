@@ -238,29 +238,155 @@ namespace SportBuddiesServer.Controllers
         {
             try
             {
-                // Create model user class
-                Models.GameDetail modelsgameDetails = gameDetailsDTO.GetModels();
-
-                // If the game is defined as private, create a random invitation code
-                if (modelsgameDetails.State == "Private")
+                // Check if user is logged in
+                string? userEmail = HttpContext.Session.GetString("loggedInUser");
+                if (string.IsNullOrEmpty(userEmail))
                 {
-                    modelsgameDetails.Link = GenerateRandomInvitationCode();
+                    return Unauthorized("User is not logged in");
                 }
 
-                context.GameDetails.Add(modelsgameDetails);
-                context.SaveChanges();
+                // Get the logged-in user
+                Models.User? user = context.Users.FirstOrDefault(u => u.Email == userEmail);
+                if (user == null)
+                {
+                    return Unauthorized("User not found");
+                }
 
-                // Game was added!
-                DTO.GameDetails dtogameDetails = new DTO.GameDetails(modelsgameDetails);
-                return Ok(dtogameDetails);
+                // Basic validation
+                if (gameDetailsDTO == null)
+                    return BadRequest("No game data received");
+
+                if (string.IsNullOrWhiteSpace(gameDetailsDTO.GameName))
+                    return BadRequest("Game name is required");
+
+                if (string.IsNullOrWhiteSpace(gameDetailsDTO.Location))
+                    return BadRequest("Location is required");
+
+                if (!gameDetailsDTO.GameType.HasValue || gameDetailsDTO.GameType <= 0)
+                    return BadRequest("Valid game type is required");
+
+                if (!gameDetailsDTO.Date.HasValue)
+                    return BadRequest("Date is required");
+
+                if (!gameDetailsDTO.Time.HasValue)
+                    return BadRequest("Time is required");
+
+                // Prepare values
+                string gameName = gameDetailsDTO.GameName.Trim();
+                string location = gameDetailsDTO.Location.Trim();
+                DateOnly date = gameDetailsDTO.Date.Value;
+                TimeOnly time = gameDetailsDTO.Time.Value;
+                int gameType = gameDetailsDTO.GameType.Value;
+                string competitive = string.IsNullOrWhiteSpace(gameDetailsDTO.Competitive) ? "Casual" : gameDetailsDTO.Competitive.Trim();
+                string state = string.IsNullOrWhiteSpace(gameDetailsDTO.State) ? "Public" : gameDetailsDTO.State.Trim();
+                int creatorId = user.UserId;
+
+                // Generate invitation code for private games
+                string invitationCode = null;
+                if (state.Equals("Private", StringComparison.OrdinalIgnoreCase))
+                {
+                    invitationCode = GenerateRandomInvitationCode();
+                }
+
+                // Use raw SQL to insert - this bypasses Entity Framework triggers issue
+                string insertSql = @"
+            INSERT INTO GameDetails (GameName, Location, Date, Time, GameType, Competitive, State, CreatorId, Link, Score, Notes, LocationLength, LocationWidth)
+            VALUES (@GameName, @Location, @Date, @Time, @GameType, @Competitive, @State, @CreatorId, @Link, @Score, @Notes, @LocationLength, @LocationWidth);
+            SELECT SCOPE_IDENTITY();";
+
+                int newGameId;
+
+                using (var command = context.Database.GetDbConnection().CreateCommand())
+                {
+                    command.CommandText = insertSql;
+
+                    // Add parameters to prevent SQL injection
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@GameName", gameName));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@Location", location));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@Date", date));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@Time", time));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@GameType", gameType));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@Competitive", competitive));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@State", state));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@CreatorId", creatorId));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@Link", (object)invitationCode ?? DBNull.Value));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@Score", DBNull.Value));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@Notes", DBNull.Value));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@LocationLength", DBNull.Value));
+                    command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@LocationWidth", DBNull.Value));
+
+                    context.Database.OpenConnection();
+                    var result = command.ExecuteScalar();
+                    newGameId = Convert.ToInt32(result);
+                    context.Database.CloseConnection();
+                }
+
+                if (newGameId <= 0)
+                {
+                    return BadRequest("Failed to create game - no ID returned");
+                }
+
+                // Create response DTO
+                DTO.GameDetails responseDto = new DTO.GameDetails
+                {
+                    GameId = newGameId,
+                    GameName = gameName,
+                    Location = location,
+                    Date = date,
+                    Time = time,
+                    GameType = gameType,
+                    Competitive = competitive,
+                    State = state,
+                    CreatorId = creatorId,
+                    Link = invitationCode,
+                    Score = null,
+                    Notes = null,
+                    Creator = new DTO.User
+                    {
+                        UserId = user.UserId,
+                        Name = user.Name,
+                        Email = user.Email
+                    }
+                };
+
+                // Try to create chat using raw SQL as well
+                try
+                {
+                    string chatInsertSql = @"
+                INSERT INTO GameChats (GameId, ChatName, CreatedDate)
+                VALUES (@GameId, @ChatName, @CreatedDate)";
+
+                    using (var chatCommand = context.Database.GetDbConnection().CreateCommand())
+                    {
+                        chatCommand.CommandText = chatInsertSql;
+                        chatCommand.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@GameId", newGameId));
+                        chatCommand.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@ChatName", $"{gameName} Chat"));
+                        chatCommand.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@CreatedDate", DateTime.Now));
+
+                        if (context.Database.GetDbConnection().State != System.Data.ConnectionState.Open)
+                            context.Database.OpenConnection();
+
+                        chatCommand.ExecuteNonQuery();
+                        context.Database.CloseConnection();
+                    }
+                }
+                catch (Exception chatEx)
+                {
+                    Console.WriteLine($"Chat creation failed: {chatEx.Message}");
+                    // Don't fail the main operation
+                }
+
+                return Ok(responseDto);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"AddGame error: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return BadRequest($"Error creating game: {ex.Message}");
             }
         }
 
-        // Helper method for creating random invitation code
+        // Helper method
         private string GenerateRandomInvitationCode()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

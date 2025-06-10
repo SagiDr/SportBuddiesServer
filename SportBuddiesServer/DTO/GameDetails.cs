@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using SportBuddiesServer.Models;
 
-
 namespace SportBuddiesServer.DTO
 {
     public class GameDetails
@@ -38,24 +37,24 @@ namespace SportBuddiesServer.DTO
 
         public GameDetails() { }
 
-        public GameDetails(Models.GameDetail modelUser)
+        public GameDetails(Models.GameDetail modelGameDetail)
         {
-            GameId = modelUser.GameId;
-            GameName = modelUser.GameName;
-            Date = modelUser.Date;
-            Time = modelUser.Time;
-            Location = modelUser.Location;
-            GameType = modelUser.GameType;
-            State = modelUser.State;
-            Score = modelUser.Score;
-            Notes = modelUser.Notes;
-            Competitive = modelUser.Competitive;
-            Link = modelUser.Link;
-            LocationLength = modelUser.LocationLength;
-            LocationWidth = modelUser.LocationWidth;
-            CreatorId = modelUser.CreatorId;
-            if (modelUser.Creator != null)
-                Creator = new User(modelUser.Creator);
+            GameId = modelGameDetail.GameId;
+            GameName = modelGameDetail.GameName;
+            Date = modelGameDetail.Date;
+            Time = modelGameDetail.Time;
+            Location = modelGameDetail.Location;
+            GameType = modelGameDetail.GameType;
+            State = modelGameDetail.State;
+            Score = modelGameDetail.Score;
+            Notes = modelGameDetail.Notes;
+            Competitive = modelGameDetail.Competitive;
+            Link = modelGameDetail.Link;
+            LocationLength = modelGameDetail.LocationLength;
+            LocationWidth = modelGameDetail.LocationWidth;
+            CreatorId = modelGameDetail.CreatorId;
+            if (modelGameDetail.Creator != null)
+                Creator = new User(modelGameDetail.Creator);
         }
 
         public Models.GameDetail GetModels()
@@ -67,23 +66,17 @@ namespace SportBuddiesServer.DTO
                 Date = this.Date,
                 Time = this.Time,
                 Location = this.Location,
-                GameType= this.GameType,
+                GameType = this.GameType,
                 State = this.State,
                 Score = this.Score,
                 Notes = this.Notes,
                 Competitive = this.Competitive,
-                Link= this.Link,
+                Link = this.Link,
                 LocationWidth = this.LocationWidth,
                 LocationLength = this.LocationLength,
                 CreatorId = this.CreatorId,
             };
             return modelsGameDetails;
         }
-
-
-        //// Optionally include collections if needed for specific operations
-        //    public ICollection<int>? GameUserIds { get; set; } = new List<int>();
-        //    public ICollection<int>? PhotoIds { get; set; } = new List<int>();
-        //}
     }
 }
